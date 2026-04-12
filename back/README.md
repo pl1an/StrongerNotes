@@ -1,22 +1,5 @@
 # Backend README
 
-## Objetivo
-
-Este diretório contém a API do projeto usando Fastify, TypeScript e Mongoose.
-
-## Estrutura atual
-
-```text
-back/
-    src/
-        app.ts
-        server.ts
-        env/
-            index.ts
-        models/
-            User.ts
-```
-
 ## Estrutura recomendada para crescer o backend
 
 Para manter organização por domínio, adotar a estrutura abaixo:
