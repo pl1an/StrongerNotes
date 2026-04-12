@@ -3,14 +3,13 @@ import { api } from '../api';
 export interface CreateUserPayload {
     name: string;
     email: string;
-    passwordHash: string;
+    password: string;
 }
 
 export interface CreateUserResponse {
     _id: string;
     name: string;
     email: string;
-    passwordHash: string;
     createdAt: string;
     updatedAt: string;
     __v: number;

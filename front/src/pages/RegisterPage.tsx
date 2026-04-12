@@ -17,12 +17,11 @@ const RegisterPage = () => {
 		e.preventDefault();
 		setApiError("");
 		setIsSubmitting(true);
-		// TEMPORARY: not secure password handling, just for testing the endpoint
 		try {
 			await createUser({
 				name,
 				email,
-				passwordHash: password
+				password
 			});
 			setName("");
 			setEmail("");

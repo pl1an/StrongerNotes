@@ -4,7 +4,6 @@ export interface GetUserByIDResponse {
     _id: string;
     name: string;
     email: string;
-    passwordHash: string;
     createdAt: string;
     updatedAt: string;
     __v: number;
