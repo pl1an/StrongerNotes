@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { createUser } from "../services/requests/users/createUser";
 import { AxiosError } from "axios";
@@ -13,19 +13,15 @@ const RegisterPage = () => {
 	const [apiError, setApiError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
+	const navigate = useNavigate();
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setApiError("");
 		setIsSubmitting(true);
 		try {
-			await createUser({
-				name,
-				email,
-				password
-			});
-			setName("");
-			setEmail("");
-			setPassword("");
+			await createUser({ name, email, password });
+			navigate("/login");
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				if (error.response?.status === 409) {
