@@ -1,5 +1,4 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import mongoose from 'mongoose';
 import { createUserBodySchema, userIdParamsSchema } from './users.schema.js';
 import { createUser, findUserById, findUserByEmail, listUsers } from './users.service.js';
 
@@ -24,7 +23,7 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
     const createdUser = await createUser(parsedBody.data);
     return reply.status(201).send({ data: createdUser });
   } catch (error) {
-    if (error instanceof mongoose.Error && (error as { code?: number }).code === 11000) {
+    if ((error as { code?: number }).code === 11000) {
       return reply.status(409).send({ error: 'E-mail already registered' });
     }
 
