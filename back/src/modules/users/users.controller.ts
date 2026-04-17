@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import mongoose from 'mongoose';
 import { createUserBodySchema, userIdParamsSchema } from './users.schema.js';
-import { createUser, findUserById, listUsers } from './users.service.js';
+import { createUser, findUserById, findUserByEmail, listUsers } from './users.service.js';
 
 // returns all users
 export async function getUsersController(_request: FastifyRequest, reply: FastifyReply) {
@@ -30,6 +30,17 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
 
     throw error;
   }
+}
+
+// returns the authenticated user's own profile
+export async function getMeController(request: FastifyRequest, reply: FastifyReply) {
+  const user = await findUserByEmail(request.user.email);
+
+  if (!user) {
+    return reply.status(404).send({ error: 'User not found' });
+  }
+
+  return reply.status(200).send({ data: user });
 }
 
 // validates id and returns a single user
