@@ -28,14 +28,72 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 *   **Fase 2.2:** rotas protegidas com JWT (`preHandler`)
 *   **Fase 3+:** rotas de treino (`workouts`, `sessions`, `sets`) e progresso
 
-## 🗺️ Roadmap de Desenvolvimento
+## 📊 Status Atual (Fase 1 concluída)
 
-Estamos seguindo um plano dividido em fases:
+### O que já foi implementado
 
-*   **Fase 1 (Atual):** Fundação da API (Fastify) e Conexão com Banco de Dados (Mongoose).
-*   **Fase 2:** Sistema de Autenticação (JWT + Bcrypt) e Segurança.
-*   **Fase 3:** Engine de Treinos (Criação de fichas e registro de séries).
-*   **Fase 4:** Visualização de Dados (Gráficos de evolução e progresso).
+**Infraestrutura e banco de dados**
+- Servidor Fastify com CORS e handler global de erros
+- Conexão com MongoDB Atlas via Mongoose
+- Docker Compose para MongoDB local (desenvolvimento)
+- Script de inicialização da coleção `users` com validação de schema no nível do banco
+
+**Backend — módulo de usuários**
+- `GET /health` — health check
+- `GET /api/v1/users` — lista todos os usuários (sem expor `passwordHash`)
+- `POST /api/v1/users` — cria usuário com senha encriptada via `bcryptjs` (12 salt rounds)
+- `GET /api/v1/users/:id` — busca usuário por ID
+- Validação de entrada com Zod (corpo e parâmetros de rota)
+- Índice único no campo `email` com tratamento de conflito (HTTP 409)
+
+**Frontend**
+- Landing page com seções de hero, features e footer
+- Alternância de tema claro/escuro com persistência em `localStorage`
+- Página de cadastro (`/register`) integrada com a API — cria conta real no banco
+- Página de login (`/login`) com UI completa — **sem integração com API ainda**
+- Cliente Axios configurado via variável de ambiente `VITE_API_URL`
 
 ---
+
+## 🗺️ Roadmap de Desenvolvimento
+
+*   **Fase 1 (Concluída):** Fundação da API (Fastify) e Conexão com Banco de Dados (Mongoose).
+*   **Fase 2 (Atual):** Sistema de Autenticação (JWT) e rotas de perfil.
+*   **Fase 3:** Engine de Treinos (fichas de treino, exercícios e registro de séries).
+*   **Fase 4:** Visualização de Dados (gráficos de evolução e progresso).
+
+---
+
+## 🚧 Próximos Passos — Fase 2
+
+### Backend
+
+1. **`POST /api/v1/auth/login`** — autenticar usuário com e-mail/senha e retornar JWT
+2. **Middleware JWT (`preHandler`)** — proteger rotas que exigem autenticação
+3. **`PUT /api/v1/users/:id`** — editar nome e e-mail do perfil (rota protegida) *(US02)*
+4. **`DELETE /api/v1/users/:id`** — excluir conta e todos os dados do usuário (rota protegida) *(US03)*
+
+### Frontend
+
+5. **Integração da página de login** — chamar `POST /auth/login`, armazenar JWT (ex: `localStorage` ou cookie `httpOnly`)
+6. **Contexto de autenticação** — prover estado do usuário logado para toda a aplicação
+7. **Rotas protegidas** — redirecionar para `/login` se não autenticado
+8. **Dashboard principal** — tela inicial pós-login (lista de fichas de treino, futuramente)
+9. **Página de perfil** — exibir e editar dados do usuário *(US02, US03)*
+
+### Sequência sugerida de implementação (Fase 2)
+
+```
+back/feat: POST /api/v1/auth/login + JWT
+back/feat: preHandler JWT middleware
+back/feat: PUT /api/v1/users/:id (editar perfil)
+back/feat: DELETE /api/v1/users/:id (excluir conta)
+front/feat: auth context + login integration
+front/feat: protected routes
+front/feat: dashboard skeleton
+front/feat: profile page
+```
+
+---
+
 *Este documento serve como guia para manter a organização do time de 4 pessoas. Vamos evoluir juntos!* 🏋️‍♂️
