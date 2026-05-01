@@ -26,10 +26,10 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 *   ~~**Fase 1.2:** `POST /api/v1/users` (cadastro)~~ ✅
 *   ~~**Fase 2.1:** `POST /api/v1/auth/login` + JWT~~ ✅
 *   ~~**Fase 2.2:** rotas protegidas com JWT (`preHandler`) + perfil~~ ✅
-*   **Fase 3:** rotas de treino (`exercises`, `workouts`, `sessions`, `sets`)
+*   ~~**Fase 3:** rotas de treino (`exercises`, `workouts`, `sessions`, `sets`)~~ ✅
 *   **Fase 4:** visualização de progresso (gráficos de carga e cardio)
 
-## 📊 Status Atual (Fase 2 concluída)
+## 📊 Status Atual (Fase 3 concluída)
 
 ### O que já foi implementado
 
@@ -37,7 +37,7 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 - Servidor Fastify com CORS e handler global de erros
 - Conexão com MongoDB Atlas via Mongoose
 - Docker Compose para MongoDB local (desenvolvimento)
-- Script de inicialização da coleção `users` com validação de schema no nível do banco
+- Scripts de inicialização das coleções `users` e `exercises` com validação de schema e seed de 34 exercícios padrão
 
 **Backend — módulo de usuários (Fase 1)**
 - `GET /health` — health check
@@ -53,20 +53,39 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 - Decorator `authenticate` aplicado via `preHandler` nas rotas protegidas
 - Validação de propriedade: HTTP 403 se o token pertence a outro usuário
 
+**Backend — engine de treinos (Fase 3)**
+- `GET /api/v1/exercises` — lista biblioteca pública + exercícios personalizados do usuário (protegida)
+- `POST /api/v1/exercises` — cria exercício personalizado (protegida)
+- `GET /api/v1/workouts` — lista fichas do usuário (protegida)
+- `POST /api/v1/workouts` — cria ficha com lista de exercícios (protegida)
+- `GET /api/v1/workouts/:id` — detalha ficha com exercícios populados (protegida)
+- `PUT /api/v1/workouts/:id` — edita nome e/ou exercícios (protegida, somente owner)
+- `DELETE /api/v1/workouts/:id` — exclui ficha (protegida, somente owner)
+- `GET /api/v1/sessions` — lista sessões do usuário (protegida)
+- `POST /api/v1/sessions` — inicia sessão a partir de uma ficha (protegida)
+- `GET /api/v1/sessions/:id` — detalha sessão com suas séries populadas (protegida)
+- `DELETE /api/v1/sessions/:id` — remove sessão e todas as séries (protegida, somente owner)
+- `POST /api/v1/sessions/:id/sets` — registra série (protegida)
+- `PUT /api/v1/sessions/:id/sets/:setId` — edita série (protegida)
+- `DELETE /api/v1/sessions/:id/sets/:setId` — remove série (protegida)
+
 **Testes automatizados**
-- 25 testes com `vitest` + MongoDB em memória (`mongodb-memory-server`)
-- Cobrem Fase 1 (CRUD de usuários) e Fase 2 (login, edição, exclusão, erros de autorização)
+- 55 testes com `vitest` + MongoDB em memória (`mongodb-memory-server`)
+- Cobrem Fases 1, 2 e 3 (exercises, workouts, sessions, sets — incluindo erros de autorização)
 - Executar com `npm test` na pasta `back/`
 
-**Frontend (Fases 1 e 2)**
+**Frontend (Fases 1, 2 e 3)**
 - Landing page com alternância de tema claro/escuro
-- Página de cadastro (`/register`) integrada com a API → redireciona para `/login`
-- Página de login (`/login`) integrada com JWT → redireciona para `/dashboard`
+- Página de cadastro (`/register`) com erros de validação por campo
+- Página de login (`/login`) integrada com JWT
 - `AuthContext` — gerencia token e dados do usuário via `localStorage`
 - Interceptor Axios — injeta `Authorization: Bearer <token>` automaticamente
 - `ProtectedRoute` — redireciona para `/login` se não autenticado
-- Dashboard (`/dashboard`) — boas-vindas com nome do usuário e placeholders da Fase 3
+- Dashboard (`/dashboard`) — estatísticas reais (sessões na semana, total de sessões, fichas ativas) + lista de fichas com botão "Start Session"
 - Perfil (`/profile`) — edição de nome/e-mail e exclusão de conta
+- Fichas (`/workouts/:id`) — criação, edição de nome, adição/remoção de exercícios com busca inline, exclusão
+- Sessão (`/sessions/:id`) — registro de séries por exercício em tempo real com edição e exclusão inline
+- Biblioteca (`/exercises`) — listagem com filtros por categoria e grupo muscular, criação de exercícios personalizados
 
 ---
 
@@ -74,66 +93,30 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 
 *   **Fase 1 (Concluída):** Fundação da API (Fastify) e conexão com banco de dados (Mongoose).
 *   **Fase 2 (Concluída):** Sistema de autenticação (JWT + bcrypt) e gerenciamento de perfil.
-*   **Fase 3 (Atual):** Engine de treinos — exercícios, fichas e registro de séries.
-*   **Fase 4:** Visualização de dados — gráficos de evolução de carga e cardio.
+*   **Fase 3 (Concluída):** Engine de treinos — exercícios, fichas, sessões e registro de séries.
+*   **Fase 4 (Atual):** Visualização de dados — gráficos de evolução de carga e cardio.
 
 ---
 
-## 🚧 Próximos Passos — Fase 3
+## 🚧 Próximos Passos — Fase 4
 
-A Fase 3 implementa o núcleo do produto: criar fichas de treino, registrar sessões e logar séries individuais. Envolve quatro novos módulos no backend e as telas principais do frontend.
-
-### Modelos de dados
-
-| Coleção | Campos principais |
-|---|---|
-| `exercises` | `name`, `category` (`strength` \| `cardio`), `muscleGroup`, `isCustom`, `createdBy` |
-| `workouts` | `name`, `owner`, `exercises[]` (referência ordenada a `exercises`) |
-| `sessions` | `workout`, `owner`, `date`, `notes` |
-| `sets` | `session`, `exercise`, `reps`, `weightKg`, `durationSecs`, `restSecs`, `notes` |
+A Fase 4 adiciona visualização de progresso: gráficos de evolução de carga (força) e de duração/pace (cardio) por exercício ao longo do tempo.
 
 ### Backend
 
-1. **Módulo `exercises`** *(US09)*
-   - `GET /api/v1/exercises` — lista a biblioteca (pública + personalizados do usuário)
-   - `POST /api/v1/exercises` — cria exercício personalizado (protegida)
-
-2. **Módulo `workouts`** *(US04, US05)*
-   - `GET /api/v1/workouts` — lista fichas do usuário (protegida)
-   - `POST /api/v1/workouts` — cria ficha com lista de exercícios (protegida)
-   - `GET /api/v1/workouts/:id` — detalha uma ficha (protegida)
-   - `PUT /api/v1/workouts/:id` — edita nome e/ou exercícios (protegida)
-   - `DELETE /api/v1/workouts/:id` — exclui ficha (protegida)
-
-3. **Módulo `sessions`** *(US06)*
-   - `GET /api/v1/sessions` — lista sessões do usuário (protegida)
-   - `POST /api/v1/sessions` — inicia uma sessão a partir de uma ficha (protegida)
-   - `GET /api/v1/sessions/:id` — detalha uma sessão com suas séries (protegida)
-   - `DELETE /api/v1/sessions/:id` — remove a sessão (protegida)
-
-4. **Sub-recurso `sets`** *(US06)*
-   - `POST /api/v1/sessions/:id/sets` — registra uma série
-   - `PUT /api/v1/sessions/:id/sets/:setId` — edita uma série
-   - `DELETE /api/v1/sessions/:id/sets/:setId` — remove uma série
+1. `GET /api/v1/exercises/:id/progress` — retorna histórico de máximos por data (peso × reps para força; duração para cardio)
 
 ### Frontend
 
-5. **Dashboard** — lista de fichas de treino do usuário com botão de nova ficha
-6. **Página de ficha** — criação e edição de rotinas com seleção de exercícios
-7. **Página de sessão** — execução do treino, registro de séries em tempo real
-8. **Biblioteca de exercícios** — busca e criação de exercícios personalizados
+2. **Página de progresso** (`/exercises/:id/progress`) — gráfico de linha com Recharts ou Chart.js
+3. **Integração no dashboard** — atalho para ver progresso de exercícios recentes
 
-### Sequência sugerida de implementação (Fase 3)
+### Sequência sugerida (Fase 4)
 
 ```
-back/feat: exercises module (GET + POST)
-back/feat: workouts module (CRUD completo)
-back/feat: sessions module (CRUD)
-back/feat: sets sub-resource (POST, PUT, DELETE)
-front/feat: dashboard with workout list
-front/feat: workout creation/edit page
-front/feat: session execution page (set logging)
-front/feat: exercise library page
+back/feat: progress endpoint
+front/feat: progress chart page
+front/feat: dashboard progress shortcuts
 ```
 
 ---

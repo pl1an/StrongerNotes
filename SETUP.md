@@ -209,11 +209,35 @@ Com backend e frontend rodando, o fluxo completo pode ser testado:
 
 ### 5.3 Dashboard
 
-A tela inicial mostra uma saudação com o seu nome. As estatísticas de treino serão implementadas na Fase 3.
+A tela inicial exibe:
+- **Estatísticas reais**: sessões na semana, total de sessões, fichas ativas
+- **Lista de rotinas** com botão "Start Session" para iniciar um treino
+- **Botão "New Routine"** para criar uma nova ficha
 
-### 5.4 Perfil
+### 5.4 Criar uma rotina
 
-1. Clique no ícone de usuário no canto superior direito do Dashboard
+1. Clique em **New Routine** no dashboard
+2. Digite o nome da ficha (ex: "Push Day A") e confirme com Enter ou ✓
+3. Na página da ficha, clique em **Add** para buscar e adicionar exercícios
+4. Clique em **Start Session** para iniciar um treino com aquela ficha
+
+### 5.5 Registrar um treino
+
+1. Ao iniciar uma sessão, você é redirecionado para a página de sessão
+2. Para cada exercício, clique em **Log Set** e preencha reps, peso (força) ou duração (cardio)
+3. Clique em ✓ **Log Set** para salvar
+4. Use o ícone de lápis para editar ou lixeira para excluir séries
+5. Ao terminar, clique em **Finish Session**
+
+### 5.6 Biblioteca de exercícios
+
+1. Clique em **Exercises** no cabeçalho do dashboard
+2. Filtre por categoria (All / Strength / Cardio) ou grupo muscular
+3. Use **New Exercise** para criar um exercício personalizado
+
+### 5.7 Perfil
+
+1. Clique no ícone de usuário no canto superior direito
 2. Edite seu nome ou e-mail e salve
 3. Na **Danger Zone**, é possível excluir a conta permanentemente
 
@@ -221,7 +245,7 @@ A tela inicial mostra uma saudação com o seu nome. As estatísticas de treino 
 
 ## 6. Executar os testes automatizados
 
-Os testes cobrem todas as rotas da **Fase 1** (cadastro e consulta de usuários) e **Fase 2** (autenticação JWT, edição e exclusão de perfil).
+Os testes cobrem as Fases 1, 2 e 3: usuários, autenticação, exercícios, fichas, sessões e séries.
 
 > Os testes usam um **MongoDB em memória** — não é necessário que o Docker ou o banco estejam ativos.
 
@@ -235,9 +259,9 @@ Saída esperada:
 ```
  RUN  v4.x.x
 
- Test Files  2 passed (2)
-      Tests  25 passed (25)
-   Duration  ~8s
+ Test Files  5 passed (5)
+      Tests  55 passed (55)
+   Duration  ~10s
 ```
 
 Para ver a cobertura de código:
@@ -250,15 +274,36 @@ npm run test:coverage
 
 ## 7. Referência rápida de endpoints
 
-| Método | Rota | Autenticação | Descrição |
-|---|---|---|---|
-| `GET` | `/health` | — | Verifica se a API está no ar |
-| `GET` | `/api/v1/users` | — | Lista todos os usuários |
-| `POST` | `/api/v1/users` | — | Cria uma conta |
-| `GET` | `/api/v1/users/:id` | — | Busca usuário por ID |
-| `POST` | `/api/v1/auth/login` | — | Autentica e retorna JWT |
-| `PUT` | `/api/v1/users/:id` | Bearer JWT | Edita nome ou e-mail |
-| `DELETE` | `/api/v1/users/:id` | Bearer JWT | Exclui a conta |
+**Públicos**
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/health` | Verifica se a API está no ar |
+| `GET` | `/api/v1/users` | Lista todos os usuários |
+| `POST` | `/api/v1/users` | Cria uma conta |
+| `GET` | `/api/v1/users/:id` | Busca usuário por ID |
+| `POST` | `/api/v1/auth/login` | Autentica e retorna JWT |
+
+**Protegidos (Bearer JWT)**
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `PUT` | `/api/v1/users/:id` | Edita nome ou e-mail |
+| `DELETE` | `/api/v1/users/:id` | Exclui a conta |
+| `GET` | `/api/v1/exercises` | Lista a biblioteca de exercícios |
+| `POST` | `/api/v1/exercises` | Cria exercício personalizado |
+| `GET` | `/api/v1/workouts` | Lista fichas do usuário |
+| `POST` | `/api/v1/workouts` | Cria nova ficha |
+| `GET` | `/api/v1/workouts/:id` | Detalha ficha com exercícios |
+| `PUT` | `/api/v1/workouts/:id` | Edita ficha |
+| `DELETE` | `/api/v1/workouts/:id` | Exclui ficha |
+| `GET` | `/api/v1/sessions` | Lista sessões do usuário |
+| `POST` | `/api/v1/sessions` | Inicia sessão a partir de uma ficha |
+| `GET` | `/api/v1/sessions/:id` | Detalha sessão com séries |
+| `DELETE` | `/api/v1/sessions/:id` | Exclui sessão e séries |
+| `POST` | `/api/v1/sessions/:id/sets` | Registra série |
+| `PUT` | `/api/v1/sessions/:id/sets/:setId` | Edita série |
+| `DELETE` | `/api/v1/sessions/:id/sets/:setId` | Remove série |
 
 Para testar os endpoints protegidos via `curl`:
 

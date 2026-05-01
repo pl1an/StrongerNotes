@@ -4,6 +4,9 @@ import fastifyJwt from '@fastify/jwt';
 import { env } from './env/index.js';
 import { usersRoutes } from './modules/users/users.routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { exercisesRoutes } from './modules/exercises/exercises.routes.js';
+import { workoutsRoutes } from './modules/workouts/workouts.routes.js';
+import { sessionsRoutes } from './modules/sessions/sessions.routes.js';
 
 export function buildApp(): FastifyInstance {
   const app = fastify({
@@ -32,6 +35,9 @@ export function buildApp(): FastifyInstance {
 
   app.register(usersRoutes, { prefix: '/api/v1/users' });
   app.register(authRoutes, { prefix: '/api/v1/auth' });
+  app.register(exercisesRoutes, { prefix: '/api/v1/exercises' });
+  app.register(workoutsRoutes, { prefix: '/api/v1/workouts' });
+  app.register(sessionsRoutes, { prefix: '/api/v1/sessions' });
 
   app.setErrorHandler((error: FastifyError, _request, reply) => {
     const status = error.statusCode || 500;

@@ -7,6 +7,9 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
+import WorkoutDetailPage from "./pages/WorkoutDetailPage";
+import SessionPage from "./pages/SessionPage";
+import ExercisesPage from "./pages/ExercisesPage";
 
 type Theme = "light" | "dark";
 
@@ -50,6 +53,9 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/workouts/:id" element={<ProtectedRoute><WorkoutDetailPage /></ProtectedRoute>} />
+            <Route path="/sessions/:id" element={<ProtectedRoute><SessionPage /></ProtectedRoute>} />
+            <Route path="/exercises" element={<ProtectedRoute><ExercisesPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
