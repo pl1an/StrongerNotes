@@ -9,6 +9,7 @@ import {
   Plus,
   Search,
   Sun,
+  TrendingUp,
   User,
   X,
 } from "lucide-react";
@@ -255,13 +256,22 @@ const ExercisesPage = () => {
                     )}
                   </div>
                   <p className="text-xs text-secondary-foreground opacity-60 mt-0.5">{exercise.muscleGroup}</p>
-                  <span className={`mt-1.5 inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
-                    exercise.category === "strength"
-                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                      : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                  }`}>
-                    {exercise.category}
-                  </span>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      exercise.category === "strength"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                    }`}>
+                      {exercise.category}
+                    </span>
+                    <Link
+                      to={`/exercises/${exercise._id}/progress`}
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:opacity-80 transition-opacity font-medium"
+                    >
+                      <TrendingUp className="w-3 h-3" />
+                      Progress
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

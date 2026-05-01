@@ -234,6 +234,16 @@ A tela inicial exibe:
 1. Clique em **Exercises** no cabeçalho do dashboard
 2. Filtre por categoria (All / Strength / Cardio) ou grupo muscular
 3. Use **New Exercise** para criar um exercício personalizado
+4. Clique em **Progress** em qualquer card para ver o gráfico de evolução
+
+### 5.8 Visualizar progresso
+
+1. Acesse `/exercises` e clique em **Progress** no card de qualquer exercício
+2. A página exibe:
+   - **Força**: gráfico com Max Weight e Est. 1RM (fórmula de Epley), cards de melhor 1RM e melhoria percentual
+   - **Cardio**: gráfico de duração máxima por sessão
+   - Tabela histórica de todas as sessões em ordem cronológica inversa
+3. É possível chegar à mesma página pelo atalho **"View exercise progress charts"** no dashboard
 
 ### 5.7 Perfil
 
@@ -292,6 +302,7 @@ npm run test:coverage
 | `DELETE` | `/api/v1/users/:id` | Exclui a conta |
 | `GET` | `/api/v1/exercises` | Lista a biblioteca de exercícios |
 | `POST` | `/api/v1/exercises` | Cria exercício personalizado |
+| `GET` | `/api/v1/exercises/:id/progress` | Histórico de progresso por exercício |
 | `GET` | `/api/v1/workouts` | Lista fichas do usuário |
 | `POST` | `/api/v1/workouts` | Cria nova ficha |
 | `GET` | `/api/v1/workouts/:id` | Detalha ficha com exercícios |

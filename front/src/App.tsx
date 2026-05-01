@@ -10,6 +10,7 @@ import ProfilePage from "./pages/ProfilePage";
 import WorkoutDetailPage from "./pages/WorkoutDetailPage";
 import SessionPage from "./pages/SessionPage";
 import ExercisesPage from "./pages/ExercisesPage";
+import ProgressPage from "./pages/ProgressPage";
 
 type Theme = "light" | "dark";
 
@@ -56,6 +57,7 @@ function App() {
             <Route path="/workouts/:id" element={<ProtectedRoute><WorkoutDetailPage /></ProtectedRoute>} />
             <Route path="/sessions/:id" element={<ProtectedRoute><SessionPage /></ProtectedRoute>} />
             <Route path="/exercises" element={<ProtectedRoute><ExercisesPage /></ProtectedRoute>} />
+            <Route path="/exercises/:id/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

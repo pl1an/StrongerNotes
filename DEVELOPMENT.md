@@ -27,9 +27,9 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 *   ~~**Fase 2.1:** `POST /api/v1/auth/login` + JWT~~ ✅
 *   ~~**Fase 2.2:** rotas protegidas com JWT (`preHandler`) + perfil~~ ✅
 *   ~~**Fase 3:** rotas de treino (`exercises`, `workouts`, `sessions`, `sets`)~~ ✅
-*   **Fase 4:** visualização de progresso (gráficos de carga e cardio)
+*   ~~**Fase 4:** visualização de progresso (gráficos de carga e cardio)~~ ✅
 
-## 📊 Status Atual (Fase 3 concluída)
+## 📊 Status Atual (Fase 4 concluída — produto completo)
 
 ### O que já foi implementado
 
@@ -85,7 +85,9 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 - Perfil (`/profile`) — edição de nome/e-mail e exclusão de conta
 - Fichas (`/workouts/:id`) — criação, edição de nome, adição/remoção de exercícios com busca inline, exclusão
 - Sessão (`/sessions/:id`) — registro de séries por exercício em tempo real com edição e exclusão inline
-- Biblioteca (`/exercises`) — listagem com filtros por categoria e grupo muscular, criação de exercícios personalizados
+- Biblioteca (`/exercises`) — listagem com filtros por categoria e grupo muscular, criação de exercícios personalizados, link "Progress" em cada card
+- Progresso (`/exercises/:id/progress`) — gráfico de linha Recharts com Max Weight + Est. 1RM (força) ou Duração (cardio), cards de stats, tabela histórica
+- Dashboard — seção de sessões recentes com atalho "View exercise progress charts"
 
 ---
 
@@ -94,30 +96,25 @@ Adotamos o modelo de **Feature Branches**. Nunca trabalhe diretamente na branch 
 *   **Fase 1 (Concluída):** Fundação da API (Fastify) e conexão com banco de dados (Mongoose).
 *   **Fase 2 (Concluída):** Sistema de autenticação (JWT + bcrypt) e gerenciamento de perfil.
 *   **Fase 3 (Concluída):** Engine de treinos — exercícios, fichas, sessões e registro de séries.
-*   **Fase 4 (Atual):** Visualização de dados — gráficos de evolução de carga e cardio.
+*   **Fase 4 (Concluída):** Visualização de dados — gráficos de evolução de carga e cardio.
 
 ---
 
-## 🚧 Próximos Passos — Fase 4
+## ✅ Produto Completo
 
-A Fase 4 adiciona visualização de progresso: gráficos de evolução de carga (força) e de duração/pace (cardio) por exercício ao longo do tempo.
+Todas as quatro fases planejadas foram implementadas. O produto cobre o ciclo completo do atleta:
 
-### Backend
+1. Criar conta e fazer login
+2. Criar fichas de treino com exercícios da biblioteca ou personalizados
+3. Iniciar sessões e registrar séries em tempo real
+4. Visualizar a evolução de carga (1RM estimado) e de cardio (duração) por exercício ao longo do tempo
 
-1. `GET /api/v1/exercises/:id/progress` — retorna histórico de máximos por data (peso × reps para força; duração para cardio)
+### Eventuais melhorias futuras
 
-### Frontend
-
-2. **Página de progresso** (`/exercises/:id/progress`) — gráfico de linha com Recharts ou Chart.js
-3. **Integração no dashboard** — atalho para ver progresso de exercícios recentes
-
-### Sequência sugerida (Fase 4)
-
-```
-back/feat: progress endpoint
-front/feat: progress chart page
-front/feat: dashboard progress shortcuts
-```
+- Reordenação de exercícios nas fichas (drag-and-drop)
+- Comparação de progresso entre exercícios
+- Export de dados (CSV / PDF)
+- Notificações de PR (personal record)
 
 ---
 

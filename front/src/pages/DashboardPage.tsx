@@ -182,6 +182,45 @@ const DashboardPage = () => {
             ))}
           </div>
         )}
+
+        {/* Recent Sessions */}
+        {!loading && sessions.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-xl font-bold mb-4">Recent Sessions</h2>
+            <div className="space-y-3">
+              {sessions.slice(0, 5).map((session) => (
+                <Link
+                  key={session._id}
+                  to={`/sessions/${session._id}`}
+                  className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4 hover:border-primary/40 transition-colors group"
+                >
+                  <div className="w-10 h-10 bg-primary/10 flex items-center justify-center rounded-xl shrink-0">
+                    <Calendar className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{session.workout.name}</p>
+                    <p className="text-sm text-secondary-foreground opacity-70">
+                      {new Date(session.date).toLocaleDateString("en-US", {
+                        weekday: "short", month: "short", day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-secondary-foreground opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-4 text-center">
+              <Link
+                to="/exercises"
+                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80 transition-opacity"
+              >
+                <TrendingUp className="w-4 h-4" />
+                View exercise progress charts
+              </Link>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
