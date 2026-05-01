@@ -10,12 +10,12 @@ const RegisterPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [apiError, setApiError] = useState("");
+  const [apiErrors, setApiErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setApiError("");
+    setApiErrors([]);
     setIsSubmitting(true);
     try {
       await createUser({ name, email, password });
@@ -23,14 +23,23 @@ const RegisterPage = () => {
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 409) {
-          setApiError("This e-mail is already registered.");
+          setApiErrors(["This e-mail is already registered."]);
         } else if (error.response?.status === 400) {
-          setApiError("Please check your name, e-mail and password format.");
+          const details = error.response?.data?.details as Record<string, { _errors: string[] }> | undefined;
+          if (details) {
+            const fieldLabels: Record<string, string> = { name: "Name", email: "E-mail", password: "Password" };
+            const fieldErrors = ["name", "email", "password"]
+              .filter((f) => details[f]?._errors?.length)
+              .map((f) => `${fieldLabels[f]}: ${details[f]._errors[0]}`);
+            setApiErrors(fieldErrors.length > 0 ? fieldErrors : ["Please check your name, e-mail and password format."]);
+          } else {
+            setApiErrors(["Please check your name, e-mail and password format."]);
+          }
         } else {
-          setApiError("Could not create account right now. Please try again.");
+          setApiErrors(["Could not create account right now. Please try again."]);
         }
       } else {
-        setApiError("Unexpected error. Please try again.");
+        setApiErrors(["Unexpected error. Please try again."]);
       }
       console.error("Error creating user:", error);
     } finally {
@@ -56,9 +65,15 @@ const RegisterPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {apiError && (
+            {apiErrors.length > 0 && (
               <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {apiError}
+                {apiErrors.length === 1 ? (
+                  apiErrors[0]
+                ) : (
+                  <ul className="list-disc list-inside space-y-1">
+                    {apiErrors.map((err, i) => <li key={i}>{err}</li>)}
+                  </ul>
+                )}
               </div>
             )}
 

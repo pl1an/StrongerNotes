@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const createUserBodySchema = z.object({
-  name: z.string().trim().min(1),
-  email: z.string().trim().email().toLowerCase(),
-  password: z.string().min(8),
+  name: z.string().trim().min(1, 'Name is required'),
+  email: z.string().trim().email('Invalid e-mail address').toLowerCase(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 }).strict();
 
 export const updateUserBodySchema = z.object({
