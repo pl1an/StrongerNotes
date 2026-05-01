@@ -1,361 +1,167 @@
-# 🛠️ Guia de Instalação — StrongerNotes
-
-Este tutorial explica como colocar o projeto em funcionamento do zero na sua máquina local.
-
----
+# Guia de Instalação — StrongerNotes
 
 ## Pré-requisitos
 
-Certifique-se de ter instalado:
-
-| Ferramenta | Versão mínima | Como verificar |
+| Ferramenta | Versão mínima | Verificar |
 |---|---|---|
 | [Node.js](https://nodejs.org/) | 18 | `node --version` |
-| npm | 9 | `npm --version` |
-| [Git](https://git-scm.com/) | qualquer | `git --version` |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | qualquer | `docker --version` |
+| [Docker](https://docs.docker.com/get-docker/) | qualquer | `docker --version` |
 
-> **Docker** é necessário para subir o MongoDB localmente. Se preferir usar o MongoDB Atlas (nuvem), veja a [seção alternativa](#opção-b--mongodb-atlas-nuvem).
+> Docker é usado para subir o MongoDB localmente. Veja a [seção alternativa](#opção-b--mongodb-atlas-nuvem) se preferir usar o Atlas na nuvem.
 
 ---
 
-## 1. Clonar o repositório
+## Início rápido (recomendado)
 
 ```bash
 git clone https://github.com/pl1an/StrongerNotes.git
 cd StrongerNotes
+./start.sh
 ```
 
-A estrutura do projeto é:
+O script `start.sh` executa automaticamente:
 
-```
-StrongerNotes/
-├── back/      # API (Node.js + Fastify)
-├── front/     # Interface web (React + Vite)
-└── db/        # Docker Compose para MongoDB local
-```
+1. Verifica se Node.js e Docker estão instalados e o daemon do Docker está rodando
+2. Cria `back/.env` e `front/.env` caso não existam (JWT\_SECRET gerado aleatoriamente)
+3. Instala as dependências npm em `back/` e `front/`
+4. Sobe o container MongoDB com `docker compose up -d`
+5. Aguarda o banco estar pronto e inicia o backend
+6. Aguarda o backend responder e inicia o frontend
+7. Exibe as URLs e mantém os logs vivos até `Ctrl+C`
+
+Ao finalizar a inicialização, acesse **[http://localhost:5173](http://localhost:5173)**.
+
+Para parar: pressione `Ctrl+C` no terminal. O MongoDB continua em background.
+Para parar também o banco: `cd db && docker compose stop`
 
 ---
 
-## 2. Banco de dados
+## Configuração manual (alternativa)
 
-### Opção A — MongoDB local com Docker (recomendado)
+Se preferir controlar cada etapa individualmente:
 
-1. Abra o Docker Desktop e aguarde o ícone ficar verde (*Engine running*).
+### 1. Banco de dados
 
-2. Na pasta `db/`, suba o container:
+#### Opção A — Docker local
 
 ```bash
 cd db
 docker compose up -d
 ```
 
-3. Confirme que está ativo:
+#### Opção B — MongoDB Atlas (nuvem)
 
-```bash
-docker compose ps
-```
-
-A saída deve mostrar `mongo-local` com status `running`.
-
-4. A URI do banco para usar no backend será:
-
-```
-mongodb://127.0.0.1:27017/strongernotes
-```
-
-> Para parar o banco: `docker compose stop`
-> Para apagar os dados e recomeçar do zero: `docker compose down -v && docker compose up -d`
-
----
-
-### Opção B — MongoDB Atlas (nuvem)
-
-Se preferir não usar Docker:
-
-1. Acesse [mongodb.com/atlas](https://www.mongodb.com/atlas) e crie uma conta gratuita.
-2. Crie um **cluster** (o plano M0 gratuito é suficiente).
-3. Em *Database Access*, crie um usuário com senha.
-4. Em *Network Access*, adicione `0.0.0.0/0` para liberar seu IP.
-5. Em *Connect → Drivers*, copie a URI no formato:
+1. Crie um cluster gratuito em [mongodb.com/atlas](https://www.mongodb.com/atlas)
+2. Copie a URI de conexão no formato:
    ```
-   mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/strongernotes?retryWrites=true&w=majority
+   mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/strongernotes
    ```
-6. Use essa URI como `MONGODB_URI` no passo seguinte.
+3. Use essa URI como `MONGODB_URI` no arquivo `back/.env`
 
----
-
-## 3. Configurar o backend
-
-### 3.1 Instalar dependências
+### 2. Backend
 
 ```bash
 cd back
+cp .env.example .env          # edite MONGODB_URI e gere um JWT_SECRET
 npm install
-```
-
-### 3.2 Criar o arquivo de variáveis de ambiente
-
-Copie o arquivo de exemplo:
-
-```bash
-cp .env.example .env
-```
-
-Abra o `.env` e preencha os valores:
-
-```env
-NODE_ENV=dev
-PORT=3333
-MONGODB_URI=mongodb://127.0.0.1:27017/strongernotes
-JWT_SECRET=cole-aqui-uma-chave-secreta-de-pelo-menos-32-caracteres
-```
-
-**Gerando um `JWT_SECRET` seguro:**
-
-No terminal, execute um dos comandos abaixo e cole o resultado no `.env`:
-
-```bash
-# Com Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-# Com OpenSSL (Linux/Mac)
-openssl rand -hex 32
-```
-
-> O `JWT_SECRET` deve ter **no mínimo 32 caracteres**. Nunca compartilhe esse valor nem o envie para o repositório.
-
-### 3.3 Iniciar o servidor
-
-```bash
 npm run dev
 ```
 
-Você verá no terminal:
-
-```
-✅ Connected to MongoDB Atlas
-🚀 StrongerNotes API running on http://localhost:3333
-```
-
-Verifique se a API está respondendo:
-
+Gerar um `JWT_SECRET` seguro:
 ```bash
-curl http://localhost:3333/health
-# {"status":"ok","timestamp":"..."}
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
----
+### 3. Frontend
 
-## 4. Configurar o frontend
-
-Abra um **novo terminal** (o backend deve continuar rodando).
-
-### 4.1 Instalar dependências
+Em um novo terminal:
 
 ```bash
 cd front
+cp .env.example .env          # VITE_API_URL=http://localhost:3333
 npm install
-```
-
-### 4.2 Criar o arquivo de variáveis de ambiente
-
-```bash
-cp .env.example .env
-```
-
-O conteúdo já está correto para desenvolvimento local:
-
-```env
-VITE_API_URL=http://localhost:3333
-```
-
-> Se você alterou a porta do backend no `.env` do `back/`, atualize esse valor aqui também.
-
-### 4.3 Iniciar o servidor de desenvolvimento
-
-```bash
 npm run dev
 ```
 
-Você verá:
+---
 
-```
-  VITE v8.x.x  ready in xxx ms
+## Testar o sistema
 
-  ➜  Local:   http://localhost:5173/
-```
+Com o `start.sh` rodando (ou os três passos acima concluídos):
 
-Abra [http://localhost:5173](http://localhost:5173) no navegador.
+| Fluxo | URL |
+|---|---|
+| Landing page | http://localhost:5173 |
+| Cadastro | http://localhost:5173/register |
+| Login | http://localhost:5173/login |
+| Dashboard | http://localhost:5173/dashboard |
+
+### Fluxo completo de uso
+
+1. **Cadastre** uma conta em `/register` (senha mínimo 8 caracteres)
+2. **Faça login** — você será redirecionado ao dashboard
+3. **Crie uma ficha** clicando em "New Routine", dê um nome e confirme
+4. **Adicione exercícios** clicando em "Add" e buscando na biblioteca
+5. **Inicie uma sessão** com o botão "Start" — a sessão é criada automaticamente
+6. **Registre séries** clicando em "Log Set" em cada exercício
+7. **Visualize seu progresso** em `/exercises` → botão "Progress" em qualquer exercício
 
 ---
 
-## 5. Testar o sistema
-
-Com backend e frontend rodando, o fluxo completo pode ser testado:
-
-### 5.1 Cadastro de conta
-
-1. Acesse [http://localhost:5173/register](http://localhost:5173/register)
-2. Preencha nome, e-mail e senha (mínimo 8 caracteres)
-3. Clique em **Get Started**
-4. Você será redirecionado para a página de login
-
-### 5.2 Login
-
-1. Acesse [http://localhost:5173/login](http://localhost:5173/login)
-2. Entre com o e-mail e senha cadastrados
-3. Ao autenticar, você será redirecionado para o **Dashboard**
-
-### 5.3 Dashboard
-
-A tela inicial exibe:
-- **Estatísticas reais**: sessões na semana, total de sessões, fichas ativas
-- **Lista de rotinas** com botão "Start Session" para iniciar um treino
-- **Botão "New Routine"** para criar uma nova ficha
-
-### 5.4 Criar uma rotina
-
-1. Clique em **New Routine** no dashboard
-2. Digite o nome da ficha (ex: "Push Day A") e confirme com Enter ou ✓
-3. Na página da ficha, clique em **Add** para buscar e adicionar exercícios
-4. Clique em **Start Session** para iniciar um treino com aquela ficha
-
-### 5.5 Registrar um treino
-
-1. Ao iniciar uma sessão, você é redirecionado para a página de sessão
-2. Para cada exercício, clique em **Log Set** e preencha reps, peso (força) ou duração (cardio)
-3. Clique em ✓ **Log Set** para salvar
-4. Use o ícone de lápis para editar ou lixeira para excluir séries
-5. Ao terminar, clique em **Finish Session**
-
-### 5.6 Biblioteca de exercícios
-
-1. Clique em **Exercises** no cabeçalho do dashboard
-2. Filtre por categoria (All / Strength / Cardio) ou grupo muscular
-3. Use **New Exercise** para criar um exercício personalizado
-4. Clique em **Progress** em qualquer card para ver o gráfico de evolução
-
-### 5.8 Visualizar progresso
-
-1. Acesse `/exercises` e clique em **Progress** no card de qualquer exercício
-2. A página exibe:
-   - **Força**: gráfico com Max Weight e Est. 1RM (fórmula de Epley), cards de melhor 1RM e melhoria percentual
-   - **Cardio**: gráfico de duração máxima por sessão
-   - Tabela histórica de todas as sessões em ordem cronológica inversa
-3. É possível chegar à mesma página pelo atalho **"View exercise progress charts"** no dashboard
-
-### 5.7 Perfil
-
-1. Clique no ícone de usuário no canto superior direito
-2. Edite seu nome ou e-mail e salve
-3. Na **Danger Zone**, é possível excluir a conta permanentemente
-
----
-
-## 6. Executar os testes automatizados
-
-Os testes cobrem as Fases 1, 2 e 3: usuários, autenticação, exercícios, fichas, sessões e séries.
-
-> Os testes usam um **MongoDB em memória** — não é necessário que o Docker ou o banco estejam ativos.
+## Testes automatizados
 
 ```bash
 cd back
 npm test
 ```
 
+> Usa MongoDB em memória — não requer Docker nem banco externo.
+
 Saída esperada:
 
 ```
- RUN  v4.x.x
-
  Test Files  5 passed (5)
-      Tests  55 passed (55)
+      Tests  60 passed (60)
    Duration  ~10s
-```
-
-Para ver a cobertura de código:
-
-```bash
-npm run test:coverage
 ```
 
 ---
 
-## 7. Referência rápida de endpoints
+## Referência de endpoints
 
 **Públicos**
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/health` | Verifica se a API está no ar |
-| `GET` | `/api/v1/users` | Lista todos os usuários |
-| `POST` | `/api/v1/users` | Cria uma conta |
-| `GET` | `/api/v1/users/:id` | Busca usuário por ID |
-| `POST` | `/api/v1/auth/login` | Autentica e retorna JWT |
+| `GET` | `/health` | Health check |
+| `POST` | `/api/v1/users` | Criar conta |
+| `POST` | `/api/v1/auth/login` | Login → retorna JWT |
 
 **Protegidos (Bearer JWT)**
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `PUT` | `/api/v1/users/:id` | Edita nome ou e-mail |
-| `DELETE` | `/api/v1/users/:id` | Exclui a conta |
-| `GET` | `/api/v1/exercises` | Lista a biblioteca de exercícios |
-| `POST` | `/api/v1/exercises` | Cria exercício personalizado |
-| `GET` | `/api/v1/exercises/:id/progress` | Histórico de progresso por exercício |
-| `GET` | `/api/v1/workouts` | Lista fichas do usuário |
-| `POST` | `/api/v1/workouts` | Cria nova ficha |
-| `GET` | `/api/v1/workouts/:id` | Detalha ficha com exercícios |
-| `PUT` | `/api/v1/workouts/:id` | Edita ficha |
-| `DELETE` | `/api/v1/workouts/:id` | Exclui ficha |
-| `GET` | `/api/v1/sessions` | Lista sessões do usuário |
-| `POST` | `/api/v1/sessions` | Inicia sessão a partir de uma ficha |
-| `GET` | `/api/v1/sessions/:id` | Detalha sessão com séries |
-| `DELETE` | `/api/v1/sessions/:id` | Exclui sessão e séries |
-| `POST` | `/api/v1/sessions/:id/sets` | Registra série |
-| `PUT` | `/api/v1/sessions/:id/sets/:setId` | Edita série |
-| `DELETE` | `/api/v1/sessions/:id/sets/:setId` | Remove série |
-
-Para testar os endpoints protegidos via `curl`:
-
-```bash
-# 1. Criar conta
-curl -s -X POST http://localhost:3333/api/v1/users \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Seu Nome","email":"voce@exemplo.com","password":"suasenha123"}' | jq
-
-# 2. Fazer login e salvar o token
-TOKEN=$(curl -s -X POST http://localhost:3333/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"voce@exemplo.com","password":"suasenha123"}' | jq -r '.data.token')
-
-# 3. Editar nome (substitua <ID> pelo _id retornado no cadastro)
-curl -s -X PUT http://localhost:3333/api/v1/users/<ID> \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Nome Novo"}' | jq
-```
-
-> `jq` é opcional — os comandos funcionam sem ele, mas a saída fica sem formatação.
+| `PUT` | `/api/v1/users/:id` | Editar perfil |
+| `DELETE` | `/api/v1/users/:id` | Excluir conta |
+| `GET` | `/api/v1/exercises` | Listar exercícios |
+| `POST` | `/api/v1/exercises` | Criar exercício personalizado |
+| `GET` | `/api/v1/exercises/:id/progress` | Histórico de progresso |
+| `GET/POST` | `/api/v1/workouts` | Listar / criar fichas |
+| `GET/PUT/DELETE` | `/api/v1/workouts/:id` | Detalhar / editar / excluir ficha |
+| `GET/POST` | `/api/v1/sessions` | Listar / iniciar sessões |
+| `GET/DELETE` | `/api/v1/sessions/:id` | Detalhar / excluir sessão |
+| `POST` | `/api/v1/sessions/:id/sets` | Registrar série |
+| `PUT/DELETE` | `/api/v1/sessions/:id/sets/:setId` | Editar / remover série |
 
 ---
 
-## 8. Solução de problemas
+## Solução de problemas
 
-**`Invalid environment variables`** ao iniciar o backend
-→ Verifique se o arquivo `back/.env` existe e se `JWT_SECRET` tem pelo menos 32 caracteres.
-
-**`MongoServerError: connect ECONNREFUSED`**
-→ O container do banco não está ativo. Rode `docker compose up -d` na pasta `db/`.
-
-**`MongoServerError: Authentication failed`** (Atlas)
-→ Usuário ou senha na URI estão incorretos. Verifique o *Database Access* no painel do Atlas.
-
-**Porta 3333 já em uso**
-→ Altere `PORT` no `back/.env` para outro valor (ex: `3334`) e atualize `VITE_API_URL` no `front/.env` correspondentemente.
-
-**Porta 5173 já em uso**
-→ O Vite escolhe automaticamente a próxima porta disponível. A URL correta aparece no terminal.
-
-**Erro `CORS` no browser**
-→ Confirme que `VITE_API_URL` no `front/.env` aponta para a porta correta do backend e que o backend está rodando.
+| Erro | Solução |
+|---|---|
+| `Invalid environment variables` | Verifique se `back/.env` existe e `JWT_SECRET` tem ≥ 32 caracteres |
+| `connect ECONNREFUSED` (MongoDB) | Execute `cd db && docker compose up -d` |
+| `Docker daemon is not running` | Abra o Docker Desktop ou inicie o serviço Docker |
+| Porta 3333 ocupada | Altere `PORT` em `back/.env` e `VITE_API_URL` em `front/.env` |
+| Porta 5173 ocupada | O Vite escolhe automaticamente a próxima porta — veja o terminal |
+| Erro CORS no browser | Confirme que `VITE_API_URL` aponta para a porta correta do backend |
