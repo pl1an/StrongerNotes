@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { createUserBodySchema, userIdParamsSchema } from './users.schema.js';
-import { createUser, findUserById, findUserByEmail, listUsers } from './users.service.js';
+import { createUserBodySchema, updateUserBodySchema, userIdParamsSchema } from './users.schema.js';
+import { createUser, deleteUser, findUserByEmail, findUserById, listUsers, updateUser } from './users.service.js';
 
 export async function getUsersController(_request: FastifyRequest, reply: FastifyReply) {
   const users = await listUsers();
@@ -14,12 +14,9 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
   }
 
   try {
-    const createdUser = await createUser(parsedBody.data);
+    const createdUser = await createUser(parsed.data);
     return reply.status(201).send({ data: createdUser });
   } catch (error: any) {
-    if (error.code === 11000) {
-      return reply.status(409).send({ error: 'E-mail already registered' });
-    }
     if ((error as { code?: number }).code === 11000) {
       return reply.status(409).send({ error: 'E-mail already registered' });
     }
