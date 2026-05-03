@@ -27,3 +27,7 @@ export async function createUser(payload: CreateUserBody) {
 export async function findUserById(id: string) {
   return User.findById(id).select('-passwordHash').lean();
 }
+
+export async function findUserByEmail(email: string) {
+  return User.findOne({ email }).select('-passwordHash').lean();
+}

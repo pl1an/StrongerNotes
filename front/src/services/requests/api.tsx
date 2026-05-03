@@ -1,7 +1,15 @@
 import axios from "axios";
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
+const apiBaseUrl = (import.meta.env.VITE_API_URL as string).replace(/\/$/, "");
 
 export const api = axios.create({
-    baseURL: apiBaseUrl,
+  baseURL: apiBaseUrl,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("auth_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });

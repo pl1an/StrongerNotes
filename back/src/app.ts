@@ -22,6 +22,7 @@ app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
+app.register(authRoutes, { prefix: '/api/v1/auth' });
 app.register(usersRoutes, { prefix: '/api/v1/users' });
 app.register(authRoutes, { prefix: '/api/v1/auth' });
 
