@@ -23,15 +23,6 @@ export async function findUserById(id: string) {
   return User.findById(id).select('-passwordHash').lean();
 }
 
-export async function updateUser(id: string, payload: UpdateUserBody) {
-  const updated = await User.findByIdAndUpdate(
-    id,
-    { $set: payload },
-    { new: true, runValidators: true },
-  ).select('-passwordHash').lean();
-  return updated;
-}
-
-export async function deleteUser(id: string) {
-  return User.findByIdAndDelete(id).lean();
+export async function findUserByEmail(email: string) {
+  return User.findOne({ email }).select('-passwordHash').lean();
 }

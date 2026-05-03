@@ -2,58 +2,54 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { createUser } from "../services/requests/users/createUser";
+import { login } from "../services/requests/auth/login";
 import { AxiosError } from "axios";
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [apiErrors, setApiErrors] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+	const navigate = useNavigate();
+	const [showPassword, setShowPassword] = useState(false);
+	const [name, setName] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [apiError, setApiError] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setApiErrors([]);
-    setIsSubmitting(true);
-    try {
-      await createUser({ name, email, password });
-      navigate("/login");
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 409) {
-          setApiErrors(["This e-mail is already registered."]);
-        } else if (error.response?.status === 400) {
-          const details = error.response?.data?.details as Record<string, { _errors: string[] }> | undefined;
-          if (details) {
-            const fieldLabels: Record<string, string> = { name: "Name", email: "E-mail", password: "Password" };
-            const fieldErrors = ["name", "email", "password"]
-              .filter((f) => details[f]?._errors?.length)
-              .map((f) => `${fieldLabels[f]}: ${details[f]._errors[0]}`);
-            setApiErrors(fieldErrors.length > 0 ? fieldErrors : ["Please check your name, e-mail and password format."]);
-          } else {
-            setApiErrors(["Please check your name, e-mail and password format."]);
-          }
-        } else {
-          setApiErrors(["Could not create account right now. Please try again."]);
-        }
-      } else {
-        setApiErrors(["Unexpected error. Please try again."]);
-      }
-      console.error("Error creating user:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+	const navigate = useNavigate();
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-6 py-12 transition-colors duration-300">
-      <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center text-sm font-medium text-secondary-foreground hover:text-primary mb-8 transition-colors group">
-          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to home
-        </Link>
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setApiError("");
+		setIsSubmitting(true);
+		try {
+			await createUser({
+				name,
+				email,
+				password
+			});
+
+			// Auto login after registration
+			const loginResponse = await login({ email, password });
+			localStorage.setItem("token", loginResponse.data.token);
+			localStorage.setItem("user", JSON.stringify(loginResponse.data.user));
+
+			navigate("/dashboard");
+		} catch (error) {
+			if (error instanceof AxiosError) {
+...
+					setApiError("This e-mail is already registered.");
+				} else if (error.response?.status === 400) {
+					setApiError("Please check your name, e-mail and password format.");
+				} else {
+					setApiError("Could not create account right now. Please try again.");
+				}
+			} else {
+				setApiError("Unexpected error. Please try again.");
+			}
+			console.error("Error creating user:", error);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
         <div className="bg-card p-8 rounded-2xl shadow-xl shadow-black/5 border border-border">
           <div className="flex flex-col items-center mb-10 text-center">

@@ -1,12 +1,9 @@
 import fastify, { type FastifyError, type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
-import fastifyJwt from '@fastify/jwt';
+import jwt from '@fastify/jwt';
 import { env } from './env/index.js';
 import { usersRoutes } from './modules/users/users.routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
-import { exercisesRoutes } from './modules/exercises/exercises.routes.js';
-import { workoutsRoutes } from './modules/workouts/workouts.routes.js';
-import { sessionsRoutes } from './modules/sessions/sessions.routes.js';
 
 export function buildApp(): FastifyInstance {
   const app = fastify({
@@ -17,17 +14,18 @@ export function buildApp(): FastifyInstance {
     origin: true,
   });
 
-  app.register(fastifyJwt, {
-    secret: env.JWT_SECRET,
-  });
+app.register(jwt, {
+  secret: env.JWT_SECRET,
+});
 
-  app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      await request.jwtVerify();
-    } catch {
-      return reply.status(401).send({ error: 'Unauthorized' });
-    }
-  });
+// Health check route
+app.get('/health', async () => {
+  return { status: 'ok', timestamp: new Date().toISOString() };
+});
+
+app.register(authRoutes, { prefix: '/api/v1/auth' });
+app.register(usersRoutes, { prefix: '/api/v1/users' });
+app.register(authRoutes, { prefix: '/api/v1/auth' });
 
   app.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };

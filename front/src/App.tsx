@@ -6,11 +6,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
-import ProfilePage from "./pages/ProfilePage";
-import WorkoutDetailPage from "./pages/WorkoutDetailPage";
-import SessionPage from "./pages/SessionPage";
-import ExercisesPage from "./pages/ExercisesPage";
-import ProgressPage from "./pages/ProgressPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 type Theme = "light" | "dark";
 
@@ -46,21 +42,17 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/workouts/:id" element={<ProtectedRoute><WorkoutDetailPage /></ProtectedRoute>} />
-            <Route path="/sessions/:id" element={<ProtectedRoute><SessionPage /></ProtectedRoute>} />
-            <Route path="/exercises" element={<ProtectedRoute><ExercisesPage /></ProtectedRoute>} />
-            <Route path="/exercises/:id/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
-          </Routes>
-        </Router>
-      </AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
+        </Routes>
+      </Router>
     </ThemeContext.Provider>
   );
 }
