@@ -1,19 +1,31 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { app } from '../../app.js';
+import type { FastifyInstance } from 'fastify';
+import { buildApp } from '../../app.js';
 import { User } from './users.model.js';
 
 describe('Users Module', () => {
   let mongoServer: MongoMemoryServer;
+  let app: FastifyInstance;
+  let authToken: string;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const uri = mongoServer.getUri();
     await mongoose.connect(uri);
+
+    app = buildApp();
+    await app.ready();
+    authToken = app.jwt.sign({
+      sub: '507f1f77bcf86cd799439011',
+      email: 'john@example.com',
+      name: 'John Doe',
+    });
   });
 
   afterAll(async () => {
+    await app.close();
     await mongoose.connection.close();
     await mongoServer.stop();
   });
@@ -72,6 +84,7 @@ describe('Users Module', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/api/v1/users',
+      headers: { authorization: `Bearer ${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -90,6 +103,7 @@ describe('Users Module', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/api/v1/users/${user._id}`,
+      headers: { authorization: `Bearer ${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
