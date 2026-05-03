@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { createUser } from "../services/requests/users/createUser";
-import { login } from "../services/requests/auth/login";
 import { AxiosError } from "axios";
+import { useAuth } from "../contexts/AuthContext";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [apiError, setApiError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login: loginUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,9 +27,7 @@ const RegisterPage = () => {
       });
 
       // Auto login after registration
-      const loginResponse = await login({ email, password });
-      localStorage.setItem("token", loginResponse.token);
-      localStorage.setItem("user", JSON.stringify(loginResponse.user));
+      await loginUser({ email, password });
 
       navigate("/dashboard");
     } catch (error) {

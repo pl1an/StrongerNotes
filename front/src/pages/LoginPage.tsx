@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { login } from "../services/requests/auth/login";
 import { AxiosError } from "axios";
+import { useAuth } from "../contexts/AuthContext";
 
 const LoginPage = () => {
 	const navigate = useNavigate();
@@ -11,6 +11,7 @@ const LoginPage = () => {
 	const [password, setPassword] = useState("");
 	const [apiError, setApiError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { login: loginUser } = useAuth();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -18,11 +19,7 @@ const LoginPage = () => {
 		setIsSubmitting(true);
 
 		try {
-			const response = await login({ email, password });
-
-			localStorage.setItem("token", response.token);
-			localStorage.setItem("user", JSON.stringify(response.user));
-
+			await loginUser({ email, password });
 			navigate("/dashboard");
 		} catch (error) {
 			if (error instanceof AxiosError) {

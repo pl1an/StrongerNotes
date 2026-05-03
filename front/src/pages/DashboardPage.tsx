@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, LogOut, LayoutDashboard, PlusCircle, History, TrendingUp } from "lucide-react";
+import { Dumbbell, LogOut, LayoutDashboard, PlusCircle, History, TrendingUp, Sun, Moon } from "lucide-react";
 import { useTheme } from "../App";
-import { Sun, Moon } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
@@ -17,12 +17,26 @@ const ThemeToggle = () => {
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user, logout } = useAuth();
+  const displayName = user?.name || "Athlete";
+  const displayEmail = user?.email || "";
+  const userInitial = displayName.charAt(0).toUpperCase() || "U";
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logout();
     navigate("/login");
+  };
+
+  const handleNewWorkout = () => {
+    navigate("/workouts/new");
+  };
+
+  const handleHistory = () => {
+    navigate("/sessions");
+  };
+
+  const handleProgress = () => {
+    navigate("/exercises");
   };
 
   return (
@@ -35,19 +49,31 @@ const DashboardPage = () => {
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
-          <button className="flex items-center gap-3 w-full p-3 rounded-xl bg-primary/10 text-primary font-bold">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl bg-primary/10 text-primary font-bold"
+          >
             <LayoutDashboard size={20} />
             Dashboard
           </button>
-          <button className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground">
+          <button
+            onClick={handleNewWorkout}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground"
+          >
             <PlusCircle size={20} />
             New Workout
           </button>
-          <button className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground">
+          <button
+            onClick={handleHistory}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground"
+          >
             <History size={20} />
             History
           </button>
-          <button className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground">
+          <button
+            onClick={handleProgress}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground"
+          >
             <TrendingUp size={20} />
             Progress
           </button>
@@ -56,11 +82,11 @@ const DashboardPage = () => {
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 p-3 mb-4">
             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold">
-              {user.name?.charAt(0) || "U"}
+              {userInitial}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold truncate">{user.name}</p>
-              <p className="text-xs text-secondary-foreground opacity-60 truncate">{user.email}</p>
+              <p className="text-sm font-bold truncate">{displayName}</p>
+              <p className="text-xs text-secondary-foreground opacity-60 truncate">{displayEmail}</p>
             </div>
           </div>
           <button 
@@ -80,14 +106,14 @@ const DashboardPage = () => {
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <div className="md:hidden w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold">
-              {user.name?.charAt(0) || "U"}
+              {user?.name?.charAt(0) || "U"}
             </div>
           </div>
         </header>
 
         <div className="p-8 max-w-6xl mx-auto w-full">
           <div className="mb-10">
-            <h1 className="text-3xl font-extrabold mb-2">Welcome back, {user.name}!</h1>
+            <h1 className="text-3xl font-extrabold mb-2">Welcome back, {displayName}!</h1>
             <p className="text-secondary-foreground opacity-70 text-lg">Ready for another scientific session?</p>
           </div>
 
@@ -109,11 +135,16 @@ const DashboardPage = () => {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold">Recent Activities</h3>
-              <button className="text-primary font-bold hover:underline">View All</button>
+              <button onClick={handleHistory} className="text-primary font-bold hover:underline">
+                View All
+              </button>
             </div>
             <div className="bg-card rounded-2xl border border-border border-dashed p-12 text-center">
               <p className="text-secondary-foreground opacity-50 mb-6">No workouts registered yet.</p>
-              <button className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all inline-flex items-center gap-2">
+              <button
+                onClick={handleNewWorkout}
+                className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all inline-flex items-center gap-2"
+              >
                 <PlusCircle size={18} />
                 Start First Workout
               </button>
