@@ -1,65 +1,46 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { login } from "../services/requests/auth/login";
 import { AxiosError } from "axios";
-import { useAuth } from "../contexts/AuthContext";
+
 
 const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [apiError, setApiError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+	const navigate = useNavigate();
+	const [showPassword, setShowPassword] = useState(false);
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [apiError, setApiError] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setApiError("");
-    setIsSubmitting(true);
-
-    try {
-      await login({ email, password });
-      navigate("/dashboard");
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 401) {
-          setApiError("Invalid email or password.");
-        } else if (error.response?.status === 400) {
-          setApiError("Please enter a valid email and password.");
-        } else {
-          setApiError("Could not sign in right now. Please try again.");
-        }
-      } else {
-        setApiError("Unexpected error. Please try again.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-6 py-12 transition-colors duration-300">
-      <div className="w-full max-w-md">
-        <Link
-          to="/"
-          className="inline-flex items-center text-sm font-medium text-secondary-foreground hover:text-primary mb-8 transition-colors group"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to home
-        </Link>
-
-        <div className="bg-card p-8 rounded-2xl shadow-xl shadow-black/5 border border-border">
-          <div className="flex flex-col items-center mb-10 text-center">
-            <div className="w-16 h-16 bg-primary flex items-center justify-center rounded-2xl mb-4 shadow-lg shadow-primary/20">
-              <Dumbbell className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-            <p className="text-secondary-foreground mt-2 opacity-80">
-              Access your dashboard to keep growing
-            </p>
-          </div>
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setApiError("");
+		setIsSubmitting(true);
+		
+		try {
+			const response = await login({ email, password });
+			
+			// For now, store token in localStorage
+			localStorage.setItem("token", response.data.token);
+			localStorage.setItem("user", JSON.stringify(response.data.user));
+			
+			navigate("/dashboard"); // Redirect to dashboard
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				if (error.response?.status === 401) {
+					setApiError("Invalid e-mail or password.");
+				} else {
+					setApiError("Could not sign in right now. Please try again.");
+				}
+			} else {
+				setApiError("Unexpected error. Please try again.");
+			}
+			console.error("Login error:", error);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {apiError && (
@@ -68,25 +49,31 @@ const LoginPage = () => {
               </div>
             )}
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-secondary-foreground opacity-50" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
-                  placeholder="name@example.com"
-                />
-              </div>
-            </div>
+			<form onSubmit={handleSubmit} className="space-y-6">
+				{apiError && (
+					<div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+						{apiError}
+					</div>
+				)}
+				<div>
+				<label htmlFor="email" className="block text-sm font-semibold mb-2">
+					Email
+				</label>
+				<div className="relative">
+					<div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+					<Mail className="h-5 w-5 text-secondary-foreground opacity-50" />
+					</div>
+					<input
+					id="email"
+					type="email"
+					required
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					className="block w-full pl-11 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
+					placeholder="name@example.com"
+					/>
+				</div>
+				</div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-semibold mb-2">
@@ -115,14 +102,14 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 px-6 text-primary-foreground bg-primary hover:opacity-90 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-            >
-              {isSubmitting ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
+				<button
+				type="submit"
+				disabled={isSubmitting}
+				className="w-full py-4 px-6 text-primary-foreground bg-primary hover:opacity-90 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
+				>
+				{isSubmitting ? "Signing In..." : "Sign In"}
+				</button>
+			</form>
 
           <div className="mt-10 pt-8 border-t border-border text-center">
             <p className="text-secondary-foreground opacity-80">

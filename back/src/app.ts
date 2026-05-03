@@ -24,6 +24,7 @@ app.get('/health', async () => {
 
 app.register(authRoutes, { prefix: '/api/v1/auth' });
 app.register(usersRoutes, { prefix: '/api/v1/users' });
+app.register(authRoutes, { prefix: '/api/v1/auth' });
 
 // global error handler
 app.setErrorHandler((error: FastifyError, request, reply) => {

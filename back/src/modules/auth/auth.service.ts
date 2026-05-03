@@ -1,14 +1,20 @@
 import { compare } from 'bcryptjs';
 import { User } from '../users/users.model.js';
+import type { LoginBody } from './auth.schema.js';
 
-export async function validateCredentials(email: string, password: string) {
-  const user = await User.findOne({ email }).lean();
+export async function authenticate(payload: LoginBody) {
+  const user = await User.findOne({ email: payload.email }).lean();
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
-  const passwordMatches = await compare(password, user.passwordHash);
-  if (!passwordMatches) return null;
+  const isPasswordValid = await compare(payload.password, user.passwordHash);
 
-  const { passwordHash: _passwordHash, ...publicUser } = user;
-  return publicUser;
+  if (!isPasswordValid) {
+    return null;
+  }
+
+  const { passwordHash: _passwordHash, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
