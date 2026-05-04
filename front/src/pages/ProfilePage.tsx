@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Mail, Save, Trash2 } from "lucide-react";
 import { AxiosError } from "axios";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth-context";
 import { updateUser } from "../services/requests/users/updateUser";
 import { deleteUser } from "../services/requests/users/deleteUser";
 

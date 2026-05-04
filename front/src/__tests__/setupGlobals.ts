@@ -1,4 +1,5 @@
+/// <reference types="node" />
 import { TextEncoder, TextDecoder } from 'util';
 
-Object.assign(global, { TextEncoder, TextDecoder });
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+Object.assign(globalThis, { TextEncoder, TextDecoder });
+(globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;

@@ -1,32 +1,19 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeContext, type Theme } from "./contexts/ThemeContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import ExercisesPage from "./pages/ExercisesPage";
 import ProgressPage from "./pages/ProgressPage";
+import ProgressOverviewPage from "./pages/ProgressOverviewPage";
 import ProfilePage from "./pages/ProfilePage";
 import SessionPage from "./pages/SessionPage";
 import SessionsPage from "./pages/SessionsPage";
 import WorkoutDetailPage from "./pages/WorkoutDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-type Theme = "light" | "dark";
-
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
-  return context;
-};
 
 function App() {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -57,6 +44,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/exercises" element={<ExercisesPage />} />
+              <Route path="/progress" element={<ProgressOverviewPage />} />
               <Route path="/exercises/:id/progress" element={<ProgressPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/workouts/:id" element={<WorkoutDetailPage />} />

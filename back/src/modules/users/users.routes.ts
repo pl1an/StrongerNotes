@@ -1,5 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { createUserController, getMeController, getUserByIdController, getUsersController } from './users.controller.js';
+import {
+  createUserController,
+  deleteUserController,
+  getMeController,
+  getUserByIdController,
+  getUsersController,
+  updateUserController,
+} from './users.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 
 export const usersRoutes: FastifyPluginAsync = async (app) => {
@@ -7,4 +14,6 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
   app.get('/me', { preHandler: [authenticate] }, getMeController);
   app.get('/', { preHandler: [authenticate] }, getUsersController);
   app.get('/:id', { preHandler: [authenticate] }, getUserByIdController);
+  app.put('/:id', { preHandler: [authenticate] }, updateUserController);
+  app.delete('/:id', { preHandler: [authenticate] }, deleteUserController);
 };

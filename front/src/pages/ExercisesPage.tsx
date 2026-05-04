@@ -13,8 +13,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../App";
+import { useAuth } from "../contexts/auth-context";
+import { useTheme } from "../contexts/ThemeContext";
 import { getExercises, type Exercise } from "../services/requests/exercises/getExercises";
 import { createExercise } from "../services/requests/exercises/createExercise";
 

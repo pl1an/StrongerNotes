@@ -4,11 +4,11 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import LoginPage from '../pages/LoginPage';
 
-jest.mock('../contexts/AuthContext', () => ({
+jest.mock('../contexts/auth-context', () => ({
   useAuth: jest.fn(),
 }));
 
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth-context';
 
 const mockLogin = jest.fn();
 const mockNavigate = jest.fn();
@@ -77,7 +77,7 @@ describe('LoginPage', () => {
     await userEvent.type(screen.getByLabelText(/password/i), 'wrongpass');
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-    expect(await screen.findByText(/invalid email or password/i)).toBeInTheDocument();
+    expect(await screen.findByText(/invalid e-?mail or password/i)).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

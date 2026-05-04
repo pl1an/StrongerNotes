@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { createUser } from "../services/requests/users/createUser";
 import { AxiosError } from "axios";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth-context";
 
 const RegisterPage = () => {
   const navigate = useNavigate();

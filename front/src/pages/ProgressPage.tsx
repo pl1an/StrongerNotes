@@ -20,8 +20,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../App";
+import { useAuth } from "../contexts/auth-context";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   getExerciseProgress,
   type ExerciseProgress,
@@ -97,7 +97,7 @@ const ProgressPage = () => {
       ? Math.round(((lastCardio.maxDuration - firstCardio.maxDuration) / firstCardio.maxDuration) * 100)
       : null;
 
-  const chartData = isStrength
+  const chartData: Record<string, string | number>[] = isStrength
     ? strengthPoints.map((d) => ({
         date: formatDate(d.date),
         "Max Weight (kg)": d.maxWeight,

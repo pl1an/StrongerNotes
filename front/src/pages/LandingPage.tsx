@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Dumbbell, TrendingUp, Users, Calendar, Sun, Moon } from "lucide-react";
-import { useTheme } from "../App";
-import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/auth-context";
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();

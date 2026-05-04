@@ -15,8 +15,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../App";
+import { useAuth } from "../contexts/auth-context";
+import { useTheme } from "../contexts/ThemeContext";
 import { getWorkoutById } from "../services/requests/workouts/getWorkoutById";
 import { createWorkout } from "../services/requests/workouts/createWorkout";
 import { updateWorkout } from "../services/requests/workouts/updateWorkout";
