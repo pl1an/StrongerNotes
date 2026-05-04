@@ -174,11 +174,11 @@ classDiagram
 		+string notes
 	}
 
-	User "1" --> "many" Workout : owns
-	User "1" --> "many" Session : logs
-	Workout "1" --> "many" Session : generates
-	Workout "many" --> "many" Exercise : includes
-	Session "1" --> "many" WorkoutSet : contains
+	User "1" --> "n" Workout : owns
+	User "1" --> "n" Session : logs
+	Workout "1" --> "n" Session : generates
+	Workout "many" --> "n" Exercise : includes
+	Session "1" --> "n" WorkoutSet : contains
 	WorkoutSet "1" --> "1" Exercise : refers
 ```
 
