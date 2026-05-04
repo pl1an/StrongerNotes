@@ -40,6 +40,22 @@ const emptyDraft = (exerciseId: string): SetDraft => ({
   notes: "",
 });
 
+const toOptionalPositiveInt = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return 1;
+  const num = Number(trimmed);
+  if (!Number.isFinite(num) || num <= 0) return 1;
+  return Math.round(num);
+};
+
+const toOptionalPositiveNumber = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return 1;
+  const num = Number(trimmed);
+  if (!Number.isFinite(num) || num <= 0) return 1;
+  return num;
+};
+
 const SetRow = ({
   set,
   sessionId,
@@ -63,11 +79,11 @@ const SetRow = ({
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {
-        reps: reps ? Number(reps) : null,
-        weightKg: weightKg ? Number(weightKg) : null,
-        durationSecs: durationSecs ? Number(durationSecs) : null,
-        restSecs: restSecs ? Number(restSecs) : null,
-        notes: notes || null,
+        reps: toOptionalPositiveInt(reps),
+        weightKg: toOptionalPositiveNumber(weightKg),
+        durationSecs: toOptionalPositiveInt(durationSecs),
+        restSecs: toOptionalPositiveInt(restSecs),
+        notes: notes? notes.trim() : "",
       };
       const updated = await updateSet(sessionId, set._id, payload);
       onUpdate(updated);
@@ -100,7 +116,7 @@ const SetRow = ({
               </div>
               <div>
                 <label className="text-xs text-secondary-foreground opacity-70 font-medium">Weight (kg)</label>
-                <input type="number" min="0" step="0.5" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
+                <input type="number" min="0.5" step="0.5" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
               </div>
             </>
           ) : (
@@ -111,7 +127,7 @@ const SetRow = ({
           )}
           <div>
             <label className="text-xs text-secondary-foreground opacity-70 font-medium">Rest (s)</label>
-            <input type="number" min="0" value={restSecs} onChange={(e) => setRestSecs(e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
+            <input type="number" min="1" value={restSecs} onChange={(e) => setRestSecs(e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div className="sm:col-span-1 col-span-2 sm:col-start-auto">
             <label className="text-xs text-secondary-foreground opacity-70 font-medium">Notes</label>
@@ -179,11 +195,11 @@ const AddSetForm = ({
       const added = await createSet(sessionId, {
         exerciseId: exercise._id,
         order: nextOrder,
-        reps: draft.reps ? Number(draft.reps) : null,
-        weightKg: draft.weightKg ? Number(draft.weightKg) : null,
-        durationSecs: draft.durationSecs ? Number(draft.durationSecs) : null,
-        restSecs: draft.restSecs ? Number(draft.restSecs) : null,
-        notes: draft.notes || null,
+        reps: toOptionalPositiveInt(draft.reps),
+        weightKg: toOptionalPositiveNumber(draft.weightKg),
+        durationSecs: toOptionalPositiveInt(draft.durationSecs),
+        restSecs: toOptionalPositiveInt(draft.restSecs),
+        notes: draft.notes.trim() || null,
       });
       onAdded(added);
     } catch (err) {
@@ -204,7 +220,7 @@ const AddSetForm = ({
             </div>
             <div>
               <label className="text-xs text-secondary-foreground opacity-70 font-medium">Weight (kg)</label>
-              <input type="number" min="0" step="0.5" value={draft.weightKg} onChange={(e) => set("weightKg", e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
+              <input type="number" min="0.5" step="0.5" value={draft.weightKg} onChange={(e) => set("weightKg", e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
             </div>
           </>
         ) : (
@@ -215,7 +231,7 @@ const AddSetForm = ({
         )}
         <div>
           <label className="text-xs text-secondary-foreground opacity-70 font-medium">Rest (s)</label>
-          <input type="number" min="0" value={draft.restSecs} onChange={(e) => set("restSecs", e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
+          <input type="number" min="1" value={draft.restSecs} onChange={(e) => set("restSecs", e.target.value)} className="w-full mt-1 px-2 py-1.5 bg-input border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="sm:col-span-1 col-span-2">
           <label className="text-xs text-secondary-foreground opacity-70 font-medium">Notes</label>
