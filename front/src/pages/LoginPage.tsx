@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AxiosError } from "axios";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth-context";
 
 const LoginPage = () => {
 	const navigate = useNavigate();

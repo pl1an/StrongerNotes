@@ -18,17 +18,11 @@ export async function loginController(request: FastifyRequest, reply: FastifyRep
     return reply.status(401).send({ error: 'Invalid e-mail or password' });
   }
 
-  const token = await reply.jwtSign(
-    {
-      name: user.name,
-      email: user.email,
-    },
-    {
-      sign: {
-        sub: user._id.toString(),
-      },
-    }
-  );
+  const token = await reply.jwtSign({
+    sub: user._id.toString(),
+    name: user.name,
+    email: user.email,
+  });
 
   return reply.status(200).send({
     data: {

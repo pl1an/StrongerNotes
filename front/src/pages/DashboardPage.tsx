@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, LogOut, LayoutDashboard, PlusCircle, History, TrendingUp, Sun, Moon } from "lucide-react";
-import { useTheme } from "../App";
-import { useAuth } from "../contexts/AuthContext";
+import { Dumbbell, LogOut, LayoutDashboard, PlusCircle, History, TrendingUp, Sun, Moon, BookOpen } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/auth-context";
 import { getSessions, type SessionSummary } from "../services/requests/sessions/getSessions";
 import { getSessionById, type SessionDetail } from "../services/requests/sessions/getSessionById";
 import { getWorkouts, type Workout } from "../services/requests/workouts/getWorkouts";
@@ -138,6 +138,10 @@ const DashboardPage = () => {
   };
 
   const handleProgress = () => {
+    navigate("/progress");
+  };
+
+  const handleExercises = () => {
     navigate("/exercises");
   };
 
@@ -191,6 +195,13 @@ const DashboardPage = () => {
           >
             <TrendingUp size={20} />
             Progress
+          </button>
+          <button
+            onClick={handleExercises}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-secondary transition-colors text-secondary-foreground"
+          >
+            <BookOpen size={20} />
+            Exercises
           </button>
         </nav>
 

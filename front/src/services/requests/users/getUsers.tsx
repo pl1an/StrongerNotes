@@ -1,13 +1,13 @@
 import { api } from '../api';
 
-export interface GetUsersResponse extends Array<{
+export type GetUsersResponse = Array<{
     _id: string;
     name: string;
     email: string;
     createdAt: string;
     updatedAt: string;
     __v: number;
-}> {}
+}>;
 
 export const getUsers = async (): Promise<GetUsersResponse> => {
     try {

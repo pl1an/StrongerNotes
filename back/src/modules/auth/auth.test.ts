@@ -154,7 +154,13 @@ describe('DELETE /api/v1/users/:id', () => {
     });
     expect(res.statusCode).toBe(204);
 
-    const check = await app.inject({ method: 'GET', url: `/api/v1/users/${user._id}` });
+    await createTestUser(app, { name: 'Witness', email: 'witness@example.com', password: 'password123' });
+    const { data: witnessAuth } = await loginTestUser(app, 'witness@example.com', 'password123');
+    const check = await app.inject({
+      method: 'GET',
+      url: `/api/v1/users/${user._id}`,
+      headers: { Authorization: `Bearer ${witnessAuth.token}` },
+    });
     expect(check.statusCode).toBe(404);
   });
 

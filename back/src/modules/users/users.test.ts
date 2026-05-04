@@ -1,11 +1,18 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { createTestApp, createTestUser } from '../../test/helpers.js';
+import { createTestApp, createTestUser, loginTestUser } from '../../test/helpers.js';
 
 let app: FastifyInstance;
+let authToken = '';
 
 beforeAll(async () => {
   app = await createTestApp();
+});
+
+beforeEach(async () => {
+  await createTestUser(app, { name: 'Auth Helper', email: 'auth-helper@example.com', password: 'password123' });
+  const { data } = await loginTestUser(app, 'auth-helper@example.com', 'password123');
+  authToken = data.token;
 });
 
 afterAll(async () => {
@@ -91,35 +98,60 @@ describe('POST /api/v1/users', () => {
 
 describe('GET /api/v1/users', () => {
   it('returns 200 with an array', async () => {
-    const res = await app.inject({ method: 'GET', url: '/api/v1/users' });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/users',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.statusCode).toBe(200);
     expect(res.json<{ data: unknown[] }>().data).toBeInstanceOf(Array);
   });
 
   it('lists created users without passwordHash', async () => {
     await createTestUser(app, { name: 'Dan', email: 'dan@example.com', password: 'password123' });
-    const res = await app.inject({ method: 'GET', url: '/api/v1/users' });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/users',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     const { data } = res.json<{ data: Record<string, unknown>[] }>();
     expect(data.length).toBeGreaterThan(0);
     expect(data[0].passwordHash).toBeUndefined();
+  });
+
+  it('returns 401 when no token is provided', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/users' });
+    expect(res.statusCode).toBe(401);
   });
 });
 
 describe('GET /api/v1/users/:id', () => {
   it('returns 200 with the user when id exists', async () => {
     const { data: created } = await createTestUser(app);
-    const res = await app.inject({ method: 'GET', url: `/api/v1/users/${created._id}` });
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/users/${created._id}`,
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.statusCode).toBe(200);
     expect(res.json<{ data: { _id: string } }>().data._id).toBe(created._id);
   });
 
   it('returns 404 when user does not exist', async () => {
-    const res = await app.inject({ method: 'GET', url: '/api/v1/users/000000000000000000000001' });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/users/000000000000000000000001',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.statusCode).toBe(404);
   });
 
   it('returns 400 for an invalid ObjectId format', async () => {
-    const res = await app.inject({ method: 'GET', url: '/api/v1/users/not-an-id' });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/users/not-an-id',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.statusCode).toBe(400);
   });
 });

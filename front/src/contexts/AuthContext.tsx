@@ -1,22 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { login as loginRequest, type LoginPayload } from "../services/requests/auth/login";
-
-interface AuthUser {
-  _id: string;
-  name: string;
-  email: string;
-}
-
-interface AuthContextType {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
-  logout: () => void;
-  updateUserData: (data: Partial<AuthUser>) => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext, type AuthUser } from "./auth-context";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -36,22 +20,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("auth_token");
     const storedUser = localStorage.getItem("auth_user");
 
+    let nextUser: AuthUser | null = null;
+
     if (token && storedUser) {
       try {
         const parsed = JSON.parse(storedUser) as Partial<AuthUser> & { id?: string };
-        const normalized = normalizeUser(parsed);
-        if (normalized) {
-          setUser(normalized);
-        } else {
-          localStorage.removeItem("auth_token");
-          localStorage.removeItem("auth_user");
-        }
+        nextUser = normalizeUser(parsed);
       } catch {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
+        nextUser = null;
       }
     }
 
+    if (token && storedUser && !nextUser) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUser(nextUser);
     setIsLoading(false);
   }, [normalizeUser]);
 
@@ -88,8 +74,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
-}
+export type { LoginPayload };
