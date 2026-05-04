@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Dumbbell, LogOut, Moon, Sun, User } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../App";
+import { useAuth } from "../contexts/auth-context";
+import { useTheme } from "../contexts/ThemeContext";
 import { getSessions, type SessionSummary } from "../services/requests/sessions/getSessions";
 
 const formatDate = (dateStr: string) => {

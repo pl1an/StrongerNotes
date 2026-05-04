@@ -2,11 +2,11 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { PrivateRoute } from '../components/PrivateRoute';
 
-jest.mock('../contexts/AuthContext', () => ({
+jest.mock('../contexts/auth-context', () => ({
   useAuth: jest.fn(),
 }));
 
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth-context';
 
 beforeEach(() => {
   jest.clearAllMocks();

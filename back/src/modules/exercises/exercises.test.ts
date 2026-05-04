@@ -177,3 +177,85 @@ describe('GET /api/v1/exercises/:id/progress', () => {
     expect(data.data[0].estimated1RM).toBeGreaterThan(100);
   });
 });
+
+describe('GET /api/v1/exercises/progress', () => {
+  it('returns 401 without token', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/exercises/progress' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns empty array when no sessions logged', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/exercises/progress',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+    const { data } = res.json<{ data: unknown[] }>();
+    expect(data).toBeInstanceOf(Array);
+    expect(data).toHaveLength(0);
+  });
+
+  it('returns progress entries for every exercise with logged sets', async () => {
+    const benchRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/exercises',
+      headers: { Authorization: `Bearer ${token}` },
+      payload: { name: 'Multi Bench', category: 'strength', muscleGroup: 'Chest' },
+    });
+    const benchId = benchRes.json<{ data: { _id: string } }>().data._id;
+
+    const squatRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/exercises',
+      headers: { Authorization: `Bearer ${token}` },
+      payload: { name: 'Multi Squat', category: 'strength', muscleGroup: 'Quadriceps' },
+    });
+    const squatId = squatRes.json<{ data: { _id: string } }>().data._id;
+
+    const workoutRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/workouts',
+      headers: { Authorization: `Bearer ${token}` },
+      payload: { name: 'Multi Workout' },
+    });
+    const workoutId = workoutRes.json<{ data: { _id: string } }>().data._id;
+
+    const sessionRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/sessions',
+      headers: { Authorization: `Bearer ${token}` },
+      payload: { workoutId },
+    });
+    const sessionId = sessionRes.json<{ data: { _id: string } }>().data._id;
+
+    await app.inject({
+      method: 'POST',
+      url: `/api/v1/sessions/${sessionId}/sets`,
+      headers: { Authorization: `Bearer ${token}` },
+      payload: { exerciseId: benchId, reps: 5, weightKg: 100, order: 0 },
+    });
+    await app.inject({
+      method: 'POST',
+      url: `/api/v1/sessions/${sessionId}/sets`,
+      headers: { Authorization: `Bearer ${token}` },
+      payload: { exerciseId: squatId, reps: 3, weightKg: 140, order: 1 },
+    });
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/exercises/progress',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+    const { data } = res.json<{
+      data: { exercise: { _id: string; name: string }; data: { estimated1RM: number }[] }[];
+    }>();
+    const ids = data.map((entry) => entry.exercise._id);
+    expect(ids).toContain(benchId);
+    expect(ids).toContain(squatId);
+    const benchEntry = data.find((entry) => entry.exercise._id === benchId)!;
+    expect(benchEntry.data).toHaveLength(1);
+    expect(benchEntry.data[0].estimated1RM).toBeGreaterThan(100);
+  });
+});

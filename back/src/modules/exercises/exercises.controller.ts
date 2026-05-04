@@ -1,6 +1,11 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { createExerciseBodySchema, exerciseIdParamsSchema } from './exercises.schema.js';
-import { listExercises, createExercise, getExerciseProgress } from './exercises.service.js';
+import {
+  listExercises,
+  createExercise,
+  getExerciseProgress,
+  getAllExercisesProgress,
+} from './exercises.service.js';
 
 export async function getExercisesController(request: FastifyRequest, reply: FastifyReply) {
   const exercises = await listExercises(request.user.sub);
@@ -15,6 +20,11 @@ export async function createExerciseController(request: FastifyRequest, reply: F
 
   const exercise = await createExercise(parsed.data, request.user.sub);
   return reply.status(201).send({ data: exercise });
+}
+
+export async function getAllExercisesProgressController(request: FastifyRequest, reply: FastifyReply) {
+  const result = await getAllExercisesProgress(request.user.sub);
+  return reply.status(200).send({ data: result });
 }
 
 export async function getExerciseProgressController(request: FastifyRequest, reply: FastifyReply) {

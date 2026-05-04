@@ -20,8 +20,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../App";
+import { useAuth } from "../contexts/auth-context";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   getExerciseProgress,
   type ExerciseProgress,
@@ -29,9 +29,15 @@ import {
   type CardioDataPoint,
 } from "../services/requests/exercises/getExerciseProgress";
 
-const formatDate = (dateStr: string) => {
-  const [year, month, day] = dateStr.split("-");
-  return `${day}/${month}/${year.slice(2)}`;
+const formatDate = (isoStr: string) => {
+  const d = new Date(isoStr);
+  if (Number.isNaN(d.getTime())) return isoStr;
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = String(d.getFullYear()).slice(2);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} ${hh}:${mm}`;
 };
 
 const formatDuration = (secs: number) => {
@@ -97,7 +103,7 @@ const ProgressPage = () => {
       ? Math.round(((lastCardio.maxDuration - firstCardio.maxDuration) / firstCardio.maxDuration) * 100)
       : null;
 
-  const chartData = isStrength
+  const chartData: Record<string, string | number>[] = isStrength
     ? strengthPoints.map((d) => ({
         date: formatDate(d.date),
         "Max Weight (kg)": d.maxWeight,

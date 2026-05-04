@@ -13,8 +13,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../App";
+import { useAuth } from "../contexts/auth-context";
+import { useTheme } from "../contexts/ThemeContext";
 import { getSessionById, type SessionDetail, type WorkoutSet } from "../services/requests/sessions/getSessionById";
 import { createSet } from "../services/requests/sessions/createSet";
 import { updateSet } from "../services/requests/sessions/updateSet";
