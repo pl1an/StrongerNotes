@@ -1,7 +1,16 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dumbbell, LogOut, LayoutDashboard, PlusCircle, History, TrendingUp, Sun, Moon } from "lucide-react";
 import { useTheme } from "../App";
 import { useAuth } from "../contexts/AuthContext";
+import { getSessions, type SessionSummary } from "../services/requests/sessions/getSessions";
+import { getSessionById, type SessionDetail } from "../services/requests/sessions/getSessionById";
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "Unknown date";
+  return date.toLocaleDateString();
+};
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
@@ -21,6 +30,69 @@ const DashboardPage = () => {
   const displayName = user?.name || "Athlete";
   const displayEmail = user?.email || "";
   const userInitial = displayName.charAt(0).toUpperCase() || "U";
+
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [recentDetails, setRecentDetails] = useState<SessionDetail[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [sessionsError, setSessionsError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadSessions = async () => {
+      setSessionsLoading(true);
+      setSessionsError("");
+      try {
+        const data = await getSessions();
+        if (cancelled) return;
+        setSessions(data);
+
+        const recent = data.slice(0, 5);
+        const detailResults = await Promise.all(
+          recent.map((session) => getSessionById(session._id).catch(() => null))
+        );
+        if (cancelled) return;
+        setRecentDetails(detailResults.filter(Boolean) as SessionDetail[]);
+      } catch {
+        if (cancelled) return;
+        setSessionsError("Could not load session data.");
+      } finally {
+        if (!cancelled) setSessionsLoading(false);
+      }
+    };
+
+    loadSessions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totalSessions = sessions.length;
+  const recentSessions = sessions.slice(0, 5);
+
+  const totalVolume = useMemo(() => {
+    let sum = 0;
+    recentDetails.forEach((detail) => {
+      detail.sets.forEach((set) => {
+        if (set.reps && set.weightKg) {
+          sum += set.reps * set.weightKg;
+        }
+      });
+    });
+    return Math.round(sum);
+  }, [recentDetails]);
+
+  const best1RM = useMemo(() => {
+    let best = 0;
+    recentDetails.forEach((detail) => {
+      detail.sets.forEach((set) => {
+        if (set.reps && set.weightKg) {
+          const estimate = set.weightKg * (1 + set.reps / 30);
+          if (estimate > best) best = estimate;
+        }
+      });
+    });
+    return best > 0 ? Math.round(best) : null;
+  }, [recentDetails]);
 
   const handleLogout = () => {
     logout();
@@ -120,15 +192,18 @@ const DashboardPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <p className="text-sm text-secondary-foreground mb-1 uppercase tracking-wider font-semibold opacity-60">Total Sessions</p>
-              <h3 className="text-4xl font-black">0</h3>
+              <h3 className="text-4xl font-black">{sessionsLoading ? "--" : totalSessions}</h3>
+              <p className="text-xs text-secondary-foreground opacity-60 mt-1">All time</p>
             </div>
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <p className="text-sm text-secondary-foreground mb-1 uppercase tracking-wider font-semibold opacity-60">Volume (kg)</p>
-              <h3 className="text-4xl font-black">0</h3>
+              <h3 className="text-4xl font-black">{sessionsLoading ? "--" : totalVolume}</h3>
+              <p className="text-xs text-secondary-foreground opacity-60 mt-1">Last 5 sessions</p>
             </div>
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <p className="text-sm text-secondary-foreground mb-1 uppercase tracking-wider font-semibold opacity-60">Next PR</p>
-              <h3 className="text-4xl font-black text-primary">--</h3>
+              <h3 className="text-4xl font-black text-primary">{sessionsLoading ? "--" : best1RM ? `${best1RM} kg` : "--"}</h3>
+              <p className="text-xs text-secondary-foreground opacity-60 mt-1">Best est. 1RM</p>
             </div>
           </div>
 
@@ -139,16 +214,48 @@ const DashboardPage = () => {
                 View All
               </button>
             </div>
-            <div className="bg-card rounded-2xl border border-border border-dashed p-12 text-center">
-              <p className="text-secondary-foreground opacity-50 mb-6">No workouts registered yet.</p>
-              <button
-                onClick={handleNewWorkout}
-                className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all inline-flex items-center gap-2"
-              >
-                <PlusCircle size={18} />
-                Start First Workout
-              </button>
-            </div>
+            {sessionsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : sessionsError ? (
+              <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {sessionsError}
+              </div>
+            ) : recentSessions.length === 0 ? (
+              <div className="bg-card rounded-2xl border border-border border-dashed p-12 text-center">
+                <p className="text-secondary-foreground opacity-50 mb-6">No workouts registered yet.</p>
+                <button
+                  onClick={handleNewWorkout}
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all inline-flex items-center gap-2"
+                >
+                  <PlusCircle size={18} />
+                  Start First Workout
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentSessions.map((session) => {
+                  const dateLabel = formatDate(session.date ?? session.createdAt);
+                  return (
+                    <button
+                      key={session._id}
+                      type="button"
+                      onClick={() => navigate(`/sessions/${session._id}`)}
+                      className="w-full text-left bg-card border border-border rounded-2xl px-6 py-4 hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-lg font-bold">{session.workout?.name ?? "Workout"}</p>
+                          <p className="text-xs text-secondary-foreground opacity-60">{dateLabel}</p>
+                        </div>
+                        <span className="text-sm font-semibold text-primary">Open</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </main>
