@@ -130,6 +130,89 @@ StrongerNotes/
 
 ---
 
+## 📐 Documentacao UML (Mermaid)
+
+Os diagramas abaixo oferecem uma visao rapida dos principais elementos do sistema e dos fluxos mais importantes para entendimento do dominio e do uso da API.
+
+### Diagrama de classes (dominio principal)
+
+```mermaid
+classDiagram
+	direction LR
+
+	class User {
+		+string _id
+		+string name
+		+string email
+	}
+
+	class Workout {
+		+string _id
+		+string name
+	}
+
+	class Exercise {
+		+string _id
+		+string name
+		+string category
+		+string muscleGroup
+	}
+
+	class Session {
+		+string _id
+		+date date
+		+string notes
+	}
+
+	class WorkoutSet {
+		+string _id
+		+int order
+		+int reps
+		+float weightKg
+		+int durationSecs
+		+int restSecs
+		+string notes
+	}
+
+	User "1" --> "many" Workout : owns
+	User "1" --> "many" Session : logs
+	Workout "1" --> "many" Session : generates
+	Workout "many" --> "many" Exercise : includes
+	Session "1" --> "many" WorkoutSet : contains
+	WorkoutSet "1" --> "1" Exercise : refers
+```
+
+### Diagrama de sequencia (iniciar sessao e registrar series)
+
+```mermaid
+sequenceDiagram
+	actor User
+	participant UI as Frontend (React)
+	participant API as API (Fastify)
+	participant SessionSvc as SessionService
+	participant DB as MongoDB
+
+	User->>UI: Clica em "Start" em uma rotina
+	UI->>API: POST /api/v1/sessions { workoutId }
+	API->>SessionSvc: createSession(workoutId, userId)
+	SessionSvc->>DB: insert Session
+	DB-->>SessionSvc: session
+	SessionSvc-->>API: session
+	API-->>UI: 201 { session }
+	UI->>UI: Navega para /sessions/:id
+
+	User->>UI: Loga um set (reps/peso ou duracao)
+	UI->>API: POST /api/v1/sessions/:id/sets { exerciseId, reps, weightKg, ... }
+	API->>SessionSvc: createSet(sessionId, payload)
+	SessionSvc->>DB: insert WorkoutSet
+	DB-->>SessionSvc: set
+	SessionSvc-->>API: set
+	API-->>UI: 201 { set }
+	UI->>UI: Atualiza lista de sets
+```
+
+---
+
 ## 🔒 Segurança
 
 - Senhas armazenadas apenas como hash bcrypt (12 rounds)
