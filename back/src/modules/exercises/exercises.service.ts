@@ -48,7 +48,7 @@ function buildProgressData(
   for (const [sessionId, sessionSets] of bySession) {
     const date = sessionDateMap.get(sessionId);
     if (!date) continue;
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = date.toISOString();
 
     if (exercise.category === 'strength') {
       let bestSet = sessionSets[0];
