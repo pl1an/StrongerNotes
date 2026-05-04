@@ -1,39 +1,24 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { loginBodySchema } from './auth.schema.js';
-import { authenticate } from './auth.service.js';
+import { authenticateUser } from './auth.service.js';
 
 export async function loginController(request: FastifyRequest, reply: FastifyReply) {
-  const parsedBody = loginBodySchema.safeParse(request.body);
-
-  if (!parsedBody.success) {
-    return reply.status(400).send({
-      error: 'Validation error',
-      details: parsedBody.error.format(),
-    });
+  const parsed = loginBodySchema.safeParse(request.body);
+  if (!parsed.success) {
+    return reply.status(400).send({ error: 'Validation error', details: parsed.error.format() });
   }
 
-  const user = await authenticate(parsedBody.data);
+  const { email, password } = parsed.data;
+  const user = await authenticateUser(email, password);
 
   if (!user) {
-    return reply.status(401).send({ error: 'Invalid e-mail or password' });
+    return reply.status(401).send({ error: 'Invalid credentials' });
   }
 
   const token = await reply.jwtSign(
-    {
-      name: user.name,
-      email: user.email,
-    },
-    {
-      sign: {
-        sub: user._id.toString(),
-      },
-    }
+    { sub: user._id, email: user.email, name: user.name },
+    { expiresIn: '7d' },
   );
 
-  return reply.status(200).send({
-    data: {
-      user,
-      token,
-    },
-  });
+  return reply.status(200).send({ data: { token, user } });
 }

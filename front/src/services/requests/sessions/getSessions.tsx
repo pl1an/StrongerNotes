@@ -2,7 +2,7 @@ import { api } from '../api';
 
 export interface SessionSummary {
   _id: string;
-  workout: { _id: string; name: string };
+  workout: { _id: string; name: string } | null;
   owner: string;
   date: string;
   notes: string | null;

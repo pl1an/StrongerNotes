@@ -13,11 +13,29 @@
 
 ## Início rápido (recomendado)
 
+No Linux/macOS/WSL ou Git Bash:
+
 ```bash
 git clone https://github.com/pl1an/StrongerNotes.git
 cd StrongerNotes
 ./start.sh
 ```
+
+No Windows PowerShell:
+
+```powershell
+git clone https://github.com/pl1an/StrongerNotes.git
+cd StrongerNotes
+.\start.ps1
+```
+
+Se o PowerShell bloquear a execução de scripts, rode:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+```
+
+> Antes de rodar o script, abra o Docker Desktop. O `start.sh` é um script Bash; no Windows, use Git Bash/WSL ou `start.ps1`.
 
 O script `start.sh` executa automaticamente:
 
@@ -32,7 +50,12 @@ O script `start.sh` executa automaticamente:
 Ao finalizar a inicialização, acesse **[http://localhost:5173](http://localhost:5173)**.
 
 Para parar: pressione `Ctrl+C` no terminal. O MongoDB continua em background.
-Para parar também o banco: `cd db && docker compose stop`
+Para parar também o banco:
+
+```bash
+cd db
+docker compose stop
+```
 
 ---
 
@@ -62,12 +85,22 @@ docker compose up -d
 
 ```bash
 cd back
-cp .env.example .env          # edite MONGODB_URI e gere um JWT_SECRET
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-Gerar um `JWT_SECRET` seguro:
+Para usar o MongoDB local do Docker, o `back/.env` deve conter:
+
+```env
+NODE_ENV=dev
+PORT=3333
+MONGODB_URI=mongodb://127.0.0.1:27017/strongernotes
+JWT_SECRET=change-this-to-a-random-secret-string-of-at-least-32-characters
+```
+
+Gerar um `JWT_SECRET` seguro, se quiser trocar o valor de exemplo:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```

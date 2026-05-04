@@ -46,10 +46,26 @@ Oferecer ao praticante de musculação um ambiente centralizado para criar rotin
 
 ### Iniciar com um único comando
 
+No Linux/macOS/WSL ou Git Bash:
+
 ```bash
 git clone https://github.com/pl1an/StrongerNotes.git
 cd StrongerNotes
 ./start.sh
+```
+
+No Windows PowerShell:
+
+```powershell
+git clone https://github.com/pl1an/StrongerNotes.git
+cd StrongerNotes
+.\start.ps1
+```
+
+Se o PowerShell bloquear a execução de scripts, rode:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
 
 O script faz tudo automaticamente:
@@ -61,6 +77,8 @@ O script faz tudo automaticamente:
 - Exibe as URLs e fica aguardando `Ctrl+C` para encerrar
 
 Ao finalizar, acesse **[http://localhost:5173](http://localhost:5173)**.
+
+> Importante: o Docker Desktop precisa estar aberto antes de iniciar o projeto. O `start.sh` é um script Bash; no Windows, use Git Bash/WSL ou rode `.\start.ps1` no PowerShell.
 
 ---
 
@@ -125,6 +143,7 @@ StrongerNotes/
 │       └── services/   # chamadas à API (Axios)
 ├── db/                 # Docker Compose + scripts de init/seed
 ├── start.sh            # bootstrap único
+├── start.ps1           # bootstrap único para Windows PowerShell
 └── DEVELOPMENT.md      # processo de desenvolvimento e roadmap
 ```
 

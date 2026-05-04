@@ -30,15 +30,9 @@ const LandingPage = () => {
             <a href="#about" className="text-sm font-medium hover:text-primary transition-colors">About</a>
           </div>
           <ThemeToggle />
-          {localStorage.getItem("token") ? (
-            <Link to="/dashboard" className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-all">
-              Dashboard
-            </Link>
-          ) : (
-            <Link to="/login" className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-all">
-              Sign In
-            </Link>
-          )}
+          <Link to="/login" className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-all">
+            Sign In
+          </Link>
         </nav>
       </header>
 

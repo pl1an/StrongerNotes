@@ -49,6 +49,7 @@ check_cmd() {
 check_cmd node  "https://nodejs.org"           "node --version"
 check_cmd npm   "https://nodejs.org"           "npm --version"
 check_cmd docker "https://docs.docker.com/get-docker/" "docker --version"
+check_cmd curl  "https://curl.se/download.html" "curl --version"
 
 if ! docker info &>/dev/null; then
   err "Docker daemon is not running. Please start Docker and try again."
@@ -88,7 +89,7 @@ section "3/5  Installing dependencies…"
 
 if [ ! -d back/node_modules ]; then
   info "Installing backend dependencies…"
-  npm install --prefix back --silent
+  (cd back && npm install --silent)
   ok "Backend dependencies installed"
 else
   ok "Backend node_modules already present — skipping"
@@ -96,7 +97,7 @@ fi
 
 if [ ! -d front/node_modules ]; then
   info "Installing frontend dependencies…"
-  npm install --prefix front --silent
+  (cd front && npm install --silent)
   ok "Frontend dependencies installed"
 else
   ok "Frontend node_modules already present — skipping"
@@ -105,7 +106,7 @@ fi
 # ── 4. start MongoDB ───────────────────────────────────────────
 section "4/5  Starting MongoDB…"
 
-(cd db && docker compose up -d --quiet-pull 2>&1) || {
+(cd db && docker compose up -d 2>&1) || {
   err "Failed to start MongoDB container."
   exit 1
 }
@@ -134,7 +135,7 @@ BACK_LOG="$LOG_DIR/backend.log"
 FRONT_LOG="$LOG_DIR/frontend.log"
 
 # start backend
-npm run dev --prefix back > "$BACK_LOG" 2>&1 &
+(cd back && npm run dev) > "$BACK_LOG" 2>&1 &
 BACK_PID=$!
 info "Backend started (PID $BACK_PID) — logs: $BACK_LOG"
 
@@ -152,13 +153,13 @@ for i in $(seq 1 20); do
 done
 
 # start frontend
-npm run dev --prefix front > "$FRONT_LOG" 2>&1 &
+(cd front && npm run dev) > "$FRONT_LOG" 2>&1 &
 FRONT_PID=$!
 info "Frontend started (PID $FRONT_PID) — logs: $FRONT_LOG"
 
 # wait a moment then grab the actual Vite URL
 sleep 3
-FRONT_URL=$(grep -oP 'http://localhost:\d+' "$FRONT_LOG" 2>/dev/null | head -1 || echo "http://localhost:5173")
+FRONT_URL=$(grep -Eo 'http://localhost:[0-9]+' "$FRONT_LOG" 2>/dev/null | head -1 || echo "http://localhost:5173")
 
 # ── ready ──────────────────────────────────────────────────────
 echo ""

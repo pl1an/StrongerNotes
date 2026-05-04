@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dumbbell, ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { createUser } from "../services/requests/users/createUser";
-import { login } from "../services/requests/auth/login";
 import { AxiosError } from "axios";
 
 const RegisterPage = () => {
@@ -11,37 +10,36 @@ const RegisterPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [apiError, setApiError] = useState("");
+  const [apiErrors, setApiErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setApiError("");
+    setApiErrors([]);
     setIsSubmitting(true);
     try {
-      await createUser({
-        name,
-        email,
-        password,
-      });
-
-      // Auto login after registration
-      const loginResponse = await login({ email, password });
-      localStorage.setItem("token", loginResponse.token);
-      localStorage.setItem("user", JSON.stringify(loginResponse.user));
-
-      navigate("/dashboard");
+      await createUser({ name, email, password });
+      navigate("/login");
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 409) {
-          setApiError("This e-mail is already registered.");
+          setApiErrors(["This e-mail is already registered."]);
         } else if (error.response?.status === 400) {
-          setApiError("Please check your name, e-mail and password format.");
+          const details = error.response?.data?.details as Record<string, { _errors: string[] }> | undefined;
+          if (details) {
+            const fieldLabels: Record<string, string> = { name: "Name", email: "E-mail", password: "Password" };
+            const fieldErrors = ["name", "email", "password"]
+              .filter((f) => details[f]?._errors?.length)
+              .map((f) => `${fieldLabels[f]}: ${details[f]._errors[0]}`);
+            setApiErrors(fieldErrors.length > 0 ? fieldErrors : ["Please check your name, e-mail and password format."]);
+          } else {
+            setApiErrors(["Please check your name, e-mail and password format."]);
+          }
         } else {
-          setApiError("Could not create account right now. Please try again.");
+          setApiErrors(["Could not create account right now. Please try again."]);
         }
       } else {
-        setApiError("Unexpected error. Please try again.");
+        setApiErrors(["Unexpected error. Please try again."]);
       }
       console.error("Error creating user:", error);
     } finally {
@@ -50,119 +48,112 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-16">
-        <div className="w-full max-w-md">
-          <Link
-            to="/"
-            className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-secondary-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
+    <div className="min-h-screen flex items-center justify-center bg-background px-6 py-12 transition-colors duration-300">
+      <div className="w-full max-w-md">
+        <Link to="/" className="inline-flex items-center text-sm font-medium text-secondary-foreground hover:text-primary mb-8 transition-colors group">
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to home
+        </Link>
 
-          <div className="bg-card p-8 rounded-2xl shadow-xl shadow-black/5 border border-border">
-            <div className="flex flex-col items-center mb-10 text-center">
-              <div className="w-16 h-16 bg-primary flex items-center justify-center rounded-2xl mb-4 shadow-lg shadow-primary/20">
-                <Dumbbell className="w-8 h-8 text-primary-foreground" />
+        <div className="bg-card p-8 rounded-2xl shadow-xl shadow-black/5 border border-border">
+          <div className="flex flex-col items-center mb-10 text-center">
+            <div className="w-16 h-16 bg-primary flex items-center justify-center rounded-2xl mb-4 shadow-lg shadow-primary/20">
+              <Dumbbell className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+            <p className="text-secondary-foreground mt-2 opacity-80">Start your scientific training journey today</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {apiErrors.length > 0 && (
+              <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {apiErrors.length === 1 ? (
+                  apiErrors[0]
+                ) : (
+                  <ul className="list-disc list-inside space-y-1">
+                    {apiErrors.map((err, i) => <li key={i}>{err}</li>)}
+                  </ul>
+                )}
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
-              <p className="text-secondary-foreground mt-2 opacity-80">
-                Start your scientific training journey today
-              </p>
+            )}
+
+            <div>
+              <label htmlFor="name" className="block text-sm font-semibold mb-2">Full Name</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-secondary-foreground opacity-50" />
+                </div>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="block w-full pl-11 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
+                  placeholder="John Doe"
+                />
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {apiError && (
-                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {apiError}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold mb-2">Email</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-secondary-foreground opacity-50" />
                 </div>
-              )}
-
-              <div>
-                <label htmlFor="name" className="block text-sm font-semibold mb-2">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-secondary-foreground opacity-50" />
-                  </div>
-                  <input
-                    id="name"
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
-                    placeholder="John Doe"
-                  />
-                </div>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full pl-11 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
+                  placeholder="name@example.com"
+                />
               </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-secondary-foreground opacity-50" />
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
-                    placeholder="name@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-secondary-foreground opacity-50" />
-                  </div>
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-11 pr-12 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-secondary-foreground opacity-50 hover:opacity-100 transition-opacity"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-4 px-6 text-primary-foreground bg-primary hover:opacity-90 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              >
-                {isSubmitting ? "Creating account..." : "Get Started"}
-              </button>
-            </form>
-
-            <div className="mt-10 pt-8 border-t border-border text-center">
-              <p className="text-secondary-foreground opacity-80">
-                Already have an account?{" "}
-                <Link to="/login" className="font-bold text-primary hover:opacity-80 transition-opacity">
-                  Sign In
-                </Link>
-              </p>
             </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold mb-2">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-secondary-foreground opacity-50" />
+                </div>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full pl-11 pr-12 py-3 bg-input border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none placeholder:text-secondary-foreground/40"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-secondary-foreground opacity-50 hover:opacity-100 transition-opacity"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 px-6 text-primary-foreground bg-primary hover:opacity-90 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+              {isSubmitting ? "Creating account..." : "Get Started"}
+            </button>
+          </form>
+
+          <div className="mt-10 pt-8 border-t border-border text-center">
+            <p className="text-secondary-foreground opacity-80">
+              Already have an account?{" "}
+              <Link to="/login" className="font-bold text-primary hover:opacity-80 transition-opacity">
+                Sign In
+              </Link>
+            </p>
           </div>
         </div>
       </div>
