@@ -5,6 +5,8 @@ import { useTheme } from "../App";
 import { useAuth } from "../contexts/AuthContext";
 import { getSessions, type SessionSummary } from "../services/requests/sessions/getSessions";
 import { getSessionById, type SessionDetail } from "../services/requests/sessions/getSessionById";
+import { getWorkouts, type Workout } from "../services/requests/workouts/getWorkouts";
+import { createSession } from "../services/requests/sessions/createSession";
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -36,6 +38,11 @@ const DashboardPage = () => {
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [sessionsError, setSessionsError] = useState("");
 
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [workoutsLoading, setWorkoutsLoading] = useState(true);
+  const [workoutsError, setWorkoutsError] = useState("");
+  const [startingWorkoutId, setStartingWorkoutId] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     const loadSessions = async () => {
@@ -61,6 +68,29 @@ const DashboardPage = () => {
     };
 
     loadSessions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadWorkouts = async () => {
+      setWorkoutsLoading(true);
+      setWorkoutsError("");
+      try {
+        const data = await getWorkouts();
+        if (cancelled) return;
+        setWorkouts(data);
+      } catch {
+        if (cancelled) return;
+        setWorkoutsError("Could not load routines.");
+      } finally {
+        if (!cancelled) setWorkoutsLoading(false);
+      }
+    };
+
+    loadWorkouts();
     return () => {
       cancelled = true;
     };
@@ -109,6 +139,19 @@ const DashboardPage = () => {
 
   const handleProgress = () => {
     navigate("/exercises");
+  };
+
+  const handleStartRoutine = async (workoutId: string) => {
+    setStartingWorkoutId(workoutId);
+    setWorkoutsError("");
+    try {
+      const created = await createSession({ workoutId });
+      navigate(`/sessions/${created._id}`);
+    } catch {
+      setWorkoutsError("Could not start session. Please try again.");
+    } finally {
+      setStartingWorkoutId(null);
+    }
   };
 
   return (
@@ -205,6 +248,67 @@ const DashboardPage = () => {
               <h3 className="text-4xl font-black text-primary">{sessionsLoading ? "--" : best1RM ? `${best1RM} kg` : "--"}</h3>
               <p className="text-xs text-secondary-foreground opacity-60 mt-1">Best est. 1RM</p>
             </div>
+          </div>
+
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold">Routines</h3>
+              <button
+                onClick={handleNewWorkout}
+                className="text-primary font-bold hover:underline"
+              >
+                New Routine
+              </button>
+            </div>
+
+            {workoutsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : workoutsError ? (
+              <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {workoutsError}
+              </div>
+            ) : workouts.length === 0 ? (
+              <div className="bg-card rounded-2xl border border-border border-dashed p-10 text-center">
+                <p className="text-secondary-foreground opacity-50 mb-6">No routines created yet.</p>
+                <button
+                  onClick={handleNewWorkout}
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all inline-flex items-center gap-2"
+                >
+                  <PlusCircle size={18} />
+                  Create First Routine
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workouts.map((workout) => (
+                  <div key={workout._id} className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-lg font-bold">{workout.name}</p>
+                      <p className="text-xs text-secondary-foreground opacity-60">
+                        {workout.exercises?.length ?? 0} exercise{(workout.exercises?.length ?? 0) !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => navigate(`/workouts/${workout._id}`)}
+                        className="px-3 py-2 text-sm font-semibold bg-secondary text-secondary-foreground rounded-lg hover:opacity-80 transition-all"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => handleStartRoutine(workout._id)}
+                        disabled={startingWorkoutId === workout._id}
+                        className="px-3 py-2 text-sm font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all disabled:opacity-60"
+                      >
+                        {startingWorkoutId === workout._id ? "Starting..." : "Start"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
