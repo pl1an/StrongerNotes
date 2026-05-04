@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import mongoose from 'mongoose';
 import { createUserBodySchema, updateUserBodySchema, userIdParamsSchema } from './users.schema.js';
-import { createUser, deleteUser, findUserByEmail, findUserById, listUsers, updateUser } from './users.service.js';
+import { createUser, deleteUser, findUserById, listUsers, updateUser } from './users.service.js';
 
 export async function getUsersController(_request: FastifyRequest, reply: FastifyReply) {
   const users = await listUsers();
@@ -14,9 +15,12 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
   }
 
   try {
-    const createdUser = await createUser(parsed.data);
-    return reply.status(201).send({ data: createdUser });
-  } catch (error: any) {
+    const user = await createUser(parsed.data);
+    return reply.status(201).send({ data: user });
+  } catch (error) {
+    if (error instanceof mongoose.Error && (error as { code?: number }).code === 11000) {
+      return reply.status(409).send({ error: 'E-mail already registered' });
+    }
     if ((error as { code?: number }).code === 11000) {
       return reply.status(409).send({ error: 'E-mail already registered' });
     }
@@ -24,18 +28,6 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
   }
 }
 
-// returns the authenticated user's own profile
-export async function getMeController(request: FastifyRequest, reply: FastifyReply) {
-  const user = await findUserByEmail(request.user.email);
-
-  if (!user) {
-    return reply.status(404).send({ error: 'User not found' });
-  }
-
-  return reply.status(200).send({ data: user });
-}
-
-// validates id and returns a single user
 export async function getUserByIdController(request: FastifyRequest, reply: FastifyReply) {
   const parsed = userIdParamsSchema.safeParse(request.params);
   if (!parsed.success) {

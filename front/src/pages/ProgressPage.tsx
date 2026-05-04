@@ -97,7 +97,7 @@ const ProgressPage = () => {
       ? Math.round(((lastCardio.maxDuration - firstCardio.maxDuration) / firstCardio.maxDuration) * 100)
       : null;
 
-  const chartData = isStrength
+  const chartData: Array<{ date: string } & Record<string, string | number>> = isStrength
     ? strengthPoints.map((d) => ({
         date: formatDate(d.date),
         "Max Weight (kg)": d.maxWeight,

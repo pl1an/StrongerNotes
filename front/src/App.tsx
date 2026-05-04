@@ -1,10 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProfilePage from "./pages/ProfilePage";
+import WorkoutDetailPage from "./pages/WorkoutDetailPage";
+import SessionPage from "./pages/SessionPage";
+import ExercisesPage from "./pages/ExercisesPage";
+import ProgressPage from "./pages/ProgressPage";
 
 type Theme = "light" | "dark";
 
@@ -40,17 +46,21 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/workouts/:id" element={<ProtectedRoute><WorkoutDetailPage /></ProtectedRoute>} />
+            <Route path="/sessions/:id" element={<ProtectedRoute><SessionPage /></ProtectedRoute>} />
+            <Route path="/exercises" element={<ProtectedRoute><ExercisesPage /></ProtectedRoute>} />
+            <Route path="/exercises/:id/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </ThemeContext.Provider>
   );
 }

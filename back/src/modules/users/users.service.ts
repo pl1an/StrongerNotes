@@ -23,18 +23,15 @@ export async function findUserById(id: string) {
   return User.findById(id).select('-passwordHash').lean();
 }
 
-export async function findUserByEmail(email: string) {
-  return User.findOne({ email }).select('-passwordHash').lean();
-}
-
 export async function updateUser(id: string, payload: UpdateUserBody) {
-  const updated = await User.findByIdAndUpdate(id, payload, { new: true });
-  if (!updated) return null;
-  return toPublicUser(updated.toObject());
+  const updated = await User.findByIdAndUpdate(
+    id,
+    { $set: payload },
+    { new: true, runValidators: true },
+  ).select('-passwordHash').lean();
+  return updated;
 }
 
 export async function deleteUser(id: string) {
-  const deleted = await User.findByIdAndDelete(id);
-  if (!deleted) return null;
-  return toPublicUser(deleted.toObject());
+  return User.findByIdAndDelete(id).lean();
 }
