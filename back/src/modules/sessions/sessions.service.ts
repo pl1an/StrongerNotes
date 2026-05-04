@@ -20,7 +20,13 @@ export async function createSession(payload: CreateSessionBody, userId: string) 
 }
 
 export async function findSessionById(id: string) {
-  return Session.findById(id).populate('workout', 'name exercises').lean();
+  return Session.findById(id)
+    .populate({
+      path: 'workout',
+      select: 'name exercises',
+      populate: { path: 'exercises', select: 'name category muscleGroup' },
+    })
+    .lean();
 }
 
 export async function deleteSession(id: string) {
