@@ -72,6 +72,7 @@ describe('RegisterFlow', () => {
   });
 
   it('Conflict error shows correct message', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const axiosError = new AxiosError('Conflict');
     axiosError.response = { status: 409 } as never;
     mockCreateUser.mockRejectedValueOnce(axiosError);
@@ -87,10 +88,14 @@ describe('RegisterFlow', () => {
     expect(await screen.findByText('This e-mail is already registered.')).toBeInTheDocument();
     expect(mockLogin).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith('Error creating user:', axiosError);
+    consoleError.mockRestore();
   });
 
   it('Generic server error shows fallback message', async () => {
-    mockCreateUser.mockRejectedValueOnce(new Error('fail'));
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const error = new Error('fail');
+    mockCreateUser.mockRejectedValueOnce(error);
 
     renderRegister();
 
@@ -101,6 +106,8 @@ describe('RegisterFlow', () => {
     await userEvent.click(screen.getByRole('button', { name: /get started/i }));
 
     expect(await screen.findByText('Unexpected error. Please try again.')).toBeInTheDocument();
+    expect(consoleError).toHaveBeenCalledWith('Error creating user:', error);
+    consoleError.mockRestore();
   });
 
   it('Password visibility toggle works correctly', async () => {
