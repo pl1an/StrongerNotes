@@ -1,5 +1,16 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import App from '../../App';
+import { getSessions } from '../../services/requests/sessions/getSessions';
+import { getSessionById } from '../../services/requests/sessions/getSessionById';
+import { getWorkouts } from '../../services/requests/workouts/getWorkouts';
+
+jest.mock('../../services/requests/sessions/getSessions');
+jest.mock('../../services/requests/sessions/getSessionById');
+jest.mock('../../services/requests/workouts/getWorkouts');
+
+const mockGetSessions = getSessions as jest.MockedFunction<typeof getSessions>;
+const mockGetSessionById = getSessionById as jest.MockedFunction<typeof getSessionById>;
+const mockGetWorkouts = getWorkouts as jest.MockedFunction<typeof getWorkouts>;
 
 jest.mock('recharts', () => {
   const Original = jest.requireActual('recharts');
@@ -27,6 +38,16 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockCurrentInitialEntry = '/';
   localStorage.clear();
+  mockGetSessions.mockResolvedValue([]);
+  mockGetSessionById.mockResolvedValue({
+    _id: 'session-1',
+    workout: { _id: 'workout-1', name: 'Mock Workout', exercises: [] },
+    owner: 'user-1',
+    date: '2024-01-01T00:00:00.000Z',
+    notes: null,
+    sets: [],
+  });
+  mockGetWorkouts.mockResolvedValue([]);
 });
 
 describe('AppRouting', () => {
